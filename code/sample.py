@@ -16,4 +16,4 @@ d.sample(Lambda=1.0,p=2.0,seed=123,maxIterations=1000000)
 p = d.points
 
 #Save in increasing sigma8 order
-np.save("data/design.npy",p[p[:,2].argsort()])
+np.save("../data/design.npy",p[p[:,2].argsort()])
