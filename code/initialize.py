@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 
 import sys,os
+sys.modules["mpi4py"] = None
 
 import lenstools
 
 from lenstools.pipeline.simulation import SimulationBatch,LensToolsCosmology
 from lenstools.pipeline.settings import EnvironmentSettings,NGenICSettings
+from lenstools.pipeline.remote import LocalGit
 from lenstools.simulations.camb import CAMBSettings
 from lenstools.simulations.gadget2 import Gadget2Settings
 
 import numpy as np
+
+git = LocalGit()
 
 #Settings
 camb = CAMBSettings()
@@ -26,8 +30,19 @@ ngenic.GlassFile = lenstools.data("dummy_glass_little_endian.dat")
 gadget2.NumFilesPerSnapshot = 24
 
 #Init batch
-environment = EnvironmentSettings(home="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Home",storage="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Storage")
-batch = SimulationBatch(environment)
+if "--git" in sys.argv:
+
+	batch = SimulationBatch.current(syshandler=git)
+	if batch is None:
+		environment = EnvironmentSettings(home="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Home",storage="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Storage")
+		batch = SimulationBatch(environment,syshandler=git)
+else:
+
+	batch = SimulationBatch.current()
+	if batch is None:
+		environment = EnvironmentSettings(home="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Home",storage="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Storage")
+		batch = SimulationBatch(environment)
+
 
 if "--tree" in sys.argv:
 
