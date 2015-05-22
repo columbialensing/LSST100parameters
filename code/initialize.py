@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import sys,os
 
 import lenstools
 
@@ -29,7 +29,7 @@ gadget2.NumFilesPerSnapshot = 24
 environment = EnvironmentSettings(home="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Home",storage="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Storage")
 batch = SimulationBatch(environment)
 
-if sys.argv[1]=="--tree":
+if "--tree" in sys.argv:
 
 	#Add all the models,collections and one realization
 	seed = np.random.randint(10000000)
@@ -46,7 +46,7 @@ if sys.argv[1]=="--tree":
 		r = collection.newRealization(seed)
 
 
-if sys.argv[1]=="--camb":
+if "--camb" in sys.argv:
 
 	#CAMB settings
 	for model in batch.available:
@@ -54,7 +54,7 @@ if sys.argv[1]=="--camb":
 		collection.writeCAMB(z=np.array([0.0]),settings=camb)
 
 
-if sys.argv[1]=="--pfiles":
+if "--pfiles" in sys.argv:
 
 	#Compute comoving distance to maximum redshift for each model
 	d = list()
