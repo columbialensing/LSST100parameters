@@ -99,6 +99,10 @@ if ("--lenses" in sys.argv) or ("--pfiles" in sys.argv):
 		if "--pfiles" in sys.argv:
 		
 			collection = model.collections[0]
+
+			#Convert camb power spectra into ngenic ones
+			collection.camb2ngenic(z=0.0)
+
 			r = collection.realizations[0]
 
 			#ngenic parameter file
