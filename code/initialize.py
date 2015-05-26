@@ -6,7 +6,7 @@ sys.modules["mpi4py"] = None
 import lenstools
 
 from lenstools.pipeline.simulation import SimulationBatch,LensToolsCosmology
-from lenstools.pipeline.settings import EnvironmentSettings,NGenICSettings
+from lenstools.pipeline.settings import EnvironmentSettings,NGenICSettings,PlaneSettings,CatalogSettings
 from lenstools.pipeline.remote import LocalGit
 from lenstools.simulations.camb import CAMBSettings
 from lenstools.simulations.gadget2 import Gadget2Settings
@@ -21,6 +21,8 @@ git = LocalGit()
 camb = CAMBSettings()
 ngenic = NGenICSettings()
 gadget2 = Gadget2Settings()
+planes = PlaneSettings.read("../planes.ini")
+catalog = CatalogSettings.read("../catalog.ini")
 
 zmax = 3.1
 box_size_Mpc_over_h = 260.0
@@ -63,6 +65,10 @@ if "--tree" in sys.argv:
 		model = batch.newModel(cosmo,parameters=["Om","Ol","w","si"])
 		collection = model.newCollection(box_size=box_size_Mpc_over_h*model.Mpc_over_h,nside=nside)
 		r = collection.newRealization(seed)
+
+		#Plane and catalog directories
+		pln = r.newPlaneSet(planes)
+		ct = collection.newCatalog(catalog)
 
 
 if "--camb" in sys.argv:
