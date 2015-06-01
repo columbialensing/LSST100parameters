@@ -17,7 +17,7 @@ VelocityPrefactor			5.974243
 Sigma8				0.726000
 SphereMode			1
 WhichSpectrum			2
-FileWithInputSpectrum			/global/homes/a/apetri/LSST100Parameters/Om0.367_Ol0.633_w-0.510_si0.726/512b260/ngenic_matterpower_z0.000000.txt
+FileWithInputSpectrum			/global/homes/a/apetri/LSST100Parameters/models/Om0.367_Ol0.633_w-0.510_si0.726/512b260/ngenic_matterpower_z0.000000.txt
 InputSpectrum_UnitLength_in_cm			3.085678e+24
 ReNormalizeInputSpectrum		1
 ShapeGamma			0.21
