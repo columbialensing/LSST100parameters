@@ -19,7 +19,7 @@ except:
 #Current simulation batch 
 batch = SimulationBatch.current()
 models = batch.available
-archive_names = ["{0}.tar.gz".format(m.cosmo_id) for m in models]
+archive_names = ["archive/{0}.tar.gz".format(m.cosmo_id) for m in models]
 
 batch.archive(archive_names,pool=pool,resource=shear,chunk_size=1,batch=batch)
 
