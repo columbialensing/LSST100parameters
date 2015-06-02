@@ -1,5 +1,5 @@
-InitCondFile			/scratch2/scratchdirs/apetri/LSST100Parameters/Om0.336_Ol0.664_w-1.227_si0.656/512b260/ic1/ics/ics
-OutputDir			/scratch2/scratchdirs/apetri/LSST100Parameters/Om0.336_Ol0.664_w-1.227_si0.656/512b260/ic1/snapshots/
+InitCondFile			/scratch3/scratchdirs/apetri/LSST100Parameters/Om0.336_Ol0.664_w-1.227_si0.656/512b260/ic1/ics/ics
+OutputDir			/scratch3/scratchdirs/apetri/LSST100Parameters/Om0.336_Ol0.664_w-1.227_si0.656/512b260/ic1/snapshots/
 EnergyFile			energy.txt
 InfoFile			info.txt
 TimingsFile			timings.txt
@@ -25,7 +25,7 @@ OutputListOn		1
 PeriodicBoundariesOn		1
 
 
-TimeBegin			0.00990099009901
+TimeBegin			0.009901
 % characteristics_of_run
 
 TimeMax		1.0

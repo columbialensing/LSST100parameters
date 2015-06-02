@@ -1,5 +1,5 @@
-InitCondFile			/scratch2/scratchdirs/apetri/LSST100Parameters/Om0.448_Ol0.552_w-1.429_si1.023/512b260/ic1/ics/ics
-OutputDir			/scratch2/scratchdirs/apetri/LSST100Parameters/Om0.448_Ol0.552_w-1.429_si1.023/512b260/ic1/snapshots/
+InitCondFile			/scratch3/scratchdirs/apetri/LSST100Parameters/Om0.448_Ol0.552_w-1.429_si1.023/512b260/ic1/ics/ics
+OutputDir			/scratch3/scratchdirs/apetri/LSST100Parameters/Om0.448_Ol0.552_w-1.429_si1.023/512b260/ic1/snapshots/
 EnergyFile			energy.txt
 InfoFile			info.txt
 TimingsFile			timings.txt
