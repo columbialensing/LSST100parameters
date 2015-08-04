@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
-import sys
+import sys,os
 sys.modules["mpi4py"] = None
+
+import matplotlib
+matplotlib.use("Agg")
 
 from lenstools.pipeline.simulation import SimulationBatch
 from lenstools.simulations import PotentialPlane
+
+import astropy.units as u
 
 #Get handle on the plane set
 batch = SimulationBatch.current()
@@ -13,4 +18,15 @@ plane_set = model.collections[0].realizations[0].planesets[0]
 
 #Visualize each plane
 for n in range(60):
-	print(plane_set.path("snap{0}_potentialPlane0_normal0.fits".format(n)))
+
+	plane_file = plane_set.path("snap{0}_potentialPlane0_normal0.fits".format(n))
+	print("[+] Processing {0}".format(plane_file))
+
+	plane = PotentialPlane.load(plane_file).density()
+	plane = plane.smooth(10.0*u.Mpc,kind="gaussianFFT")
+	plane.visualize()
+
+	figure_filename = os.path.join(batch.environment.home,"planes_png","plane{0}.png".format(n))
+	print("[+] Saving figure to {0}".format(figure_filename))
+	plane.savefig(figure_filename)
+
