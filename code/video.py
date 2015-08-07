@@ -26,7 +26,7 @@ for n in range(60):
 	plane = PotentialPlane.load(plane_file).density()
 	plane = plane.smooth(10.0*u.Mpc,kind="gaussianFFT")
 	plane.visualize()
-	plane.ax.set_title(r"$t={0:.3f}\mathrm{Gyr}$".format(plane_set.cosmology.age(plane.redshift).value),fontsize=18)
+	plane.ax.set_title(r"$t={0:.3f}$".format(plane_set.cosmology.age(plane.redshift).value)+r"$\mathrm{Gyr}$",fontsize=18)
 
 	figure_filename = os.path.join(batch.environment.home,"planes_png","plane{0}.png".format(n))
 	print("[+] Saving figure to {0}".format(figure_filename))
