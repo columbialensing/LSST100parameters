@@ -13,5 +13,5 @@ except:
 
 #Current simulation batch 
 batch = SimulationBatch.current()
-batch.unpack(where=batch.environment.storage,pool=pool)
+batch.unpack(where='/scratch3/scratchdirs/apetri/archive',pool=pool)
 pool.comm.Barrier()
