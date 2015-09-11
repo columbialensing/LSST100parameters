@@ -24,8 +24,10 @@ class FeatureDatabase(object):
 	add_noise = False
 
 	#Create a connection to a database
-	def __init__(self,name):
+	def __init__(self,name,**kwargs):
 		self.connection = create_engine("sqlite:///"+name)
+		for key in kwargs.keys():
+			setattr(self,key,kwargs[key])
 
 	#For context manager
 	def __enter__(self):
@@ -44,6 +46,20 @@ class FeatureDatabase(object):
 		"""
 
 		df.to_sql(table_name,self.connection,if_exists="append",index=False)
+
+	#Query the database
+	def query(self,sql):
+
+		"""
+		:param sql: sql query string
+		:type sql: str.
+
+		:returns: Ensemble
+
+		"""
+
+		return Ensemble.read_sql_query(sql,self.connection)
+
 
 	###########################################################################################
 	#Process all the realizations in a particular sub-catalog; add the results to the database#
