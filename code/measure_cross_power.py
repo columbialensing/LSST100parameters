@@ -1,6 +1,6 @@
 #!/usr/bin/env python-mpi
 
-import sys
+import sys,os
 
 from library.featureDB import FeatureDatabase
 
