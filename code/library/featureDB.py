@@ -7,12 +7,11 @@ import sys,os
 
 from lenstools.catalog import ShearCatalog
 from lenstools.statistics.ensemble import Ensemble
+from lenstools.statistics.database import Database
 
 import numpy as np
 import astropy.units as u
 import astropy.table as tbl
-
-from sqlalchemy import create_engine
 
 
 #############################################
@@ -62,7 +61,7 @@ def _assemble(ens_list):
 #####FeatureDatabase class######
 ################################
 
-class FeatureDatabase(object):
+class FeatureDatabase(Database):
 
 	#Global options
 	map_specs = {
@@ -73,52 +72,10 @@ class FeatureDatabase(object):
 	"add_noise" : False
 	}
 
-	#Create a connection to a database
 	def __init__(self,name,**kwargs):
-		self.connection = create_engine("sqlite:///"+name)
+		super(FeatureDatabase,self).__init__(name)
 		for key in kwargs.keys():
 			self.map_specs[key] = kwargs[key]
-
-	#For context manager
-	def __enter__(self):
-		return self
-
-	def __exit__(self,type,value,tb):
-		self.connection.dispose()
-
-	#Insert records in the database
-	def insert(self,df,table_name="data"):
-
-		"""
-		:param df: records to insert in the database, in Ensemble (or pandas DataFrame) format
-		:type df: Ensemble
-
-		"""
-
-		df.to_sql(table_name,self.connection,if_exists="append",index=False)
-
-	#Query the database
-	def query(self,sql):
-
-		"""
-		:param sql: sql query string
-		:type sql: str.
-
-		:returns: Ensemble
-
-		"""
-
-		return Ensemble.read_sql_query(sql,self.connection)
-
-	#Visualize information about a table in the database
-	def info(self,table_name="data"):
-		assert table_name in self.tables,"Table {0} does not exist!".format(table_name)
-		return self.query("PRAGMA table_info({0})".format(table_name))
-
-	@property
-	def tables(self):
-		return self.connection.table_names() 
-
 
 	###########################################################################################
 	#Process all the realizations in a particular sub-catalog; add the results to the database#
