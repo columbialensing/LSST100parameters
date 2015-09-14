@@ -110,6 +110,15 @@ class FeatureDatabase(object):
 
 		return Ensemble.read_sql_query(sql,self.connection)
 
+	#Visualize information about a table in the database
+	def info(self,table_name="data"):
+		assert table_name in self.tables,"Table {0} does not exist!".format(table_name)
+		return self.query("PRAGMA table_info({0})".format(table_name))
+
+	@property
+	def tables(self):
+		return self.connection.table_names() 
+
 
 	###########################################################################################
 	#Process all the realizations in a particular sub-catalog; add the results to the database#
