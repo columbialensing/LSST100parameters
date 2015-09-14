@@ -1,14 +1,15 @@
 #!/usr/bin/env python-mpi
 
+import sys
+
 from library.featureDB import FeatureDatabase
 
 from lenstools.pipeline import SimulationBatch
 from lenstools.statistics.ensemble import Ensemble
-from lenstools.utils import MPIWhirlPool
+from lenstools.utils.decorators import Parallelize
 
 import numpy as np
 import pandas as pd
-from mpi4py import MPI
 
 #Measure the cross spectrum of a list of convergence maps
 def cross_power(maps,ell_edges,indices):
@@ -47,19 +48,8 @@ def cross_power(maps,ell_edges,indices):
 
 
 #Main execution
-def main():
-	
-	#MPI Pool
-	try:
-		pool = MPIWhirlPool()
-	except ValueError:
-		pool = None
-
-	if (pool is not None) and (not pool.is_master()):
-		pool.wait()
-		pool.comm.Barrier()
-		MPI.Finalize()
-		sys.exit(0)
+@Parallelize.masterworker
+def main(pool):
 
 	#Handle on the current batch
 	batch = SimulationBatch.current()
@@ -72,19 +62,14 @@ def main():
 
 	#Use these bin edges and cross bins
 	ell_edges = pd.read_pickle("../data/edges.pkl")["ell_edges"].values
-	indices = zip(*np.triu_indices(db.nzbins))
+	indices = zip(*np.triu_indices(db.map_specs["nzbins"]))
 
 	#Execute
-	for model in models:
-		for sc in model.getCollection("512b260").getCatalog("Shear").subcatalogs:
-			db.add_features("features",sc,measurer=cross_power,pool=pool,ell_edges=ell_edges,indices=indices)
-
-	#Finish
-	if pool is not None:
-		pool.close()
-		pool.comm.Barrier()
-		MPI.Finalize()
+	for n,model in enumerate(models):
+		for s,sc in enumerate(model.getCollection("512b260").getCatalog("Shear").subcatalogs):
+			print("[+] Measuring cross spectrum in model {0}, sub-catalog {1}...".format(n+1,s+1))
+			db.add_features("features",sc,measurer=cross_power,extra_columns={"model":n+1,"sub_catalog":s+1},pool=pool,ell_edges=ell_edges,indices=indices)
 
 
 if __name__=="__main__":
-	main()
+	main(None)

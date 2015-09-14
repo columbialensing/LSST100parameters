@@ -14,20 +14,70 @@ import astropy.table as tbl
 
 from sqlalchemy import create_engine
 
+
+#############################################
+#Measure features in a partcular realization#
+#############################################
+
+def process_realization(realization,db_type,map_specs,sub_catalog,measurer,**kwargs):
+
+	"""
+	:param realization: number of the realization to process
+	:type realization: int.
+
+	:param sub_catalog: sub catalog that the realization belongs to
+	:type sub_catalog: SimulationSubCatalog
+
+	:param measurer: gets called on the list of convergence maps in the particular realization, must return an Ensemble
+	:type measurer: callable
+
+	:param kwargs: passed to the measurer
+	:type kwargs: dict.
+
+	:returns: Ensemble
+
+	"""
+
+	#Construct file names of shear and position catalogs
+	position_files = [ "../data/positions_bin{0}.fits".format(n) for n in range(1,map_specs["nzbins"]+1) ]
+	shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,map_specs["nzbins"]+1) ]
+
+	#Construct the maps
+	maps = db_type.make_maps(shear_files,position_files,npixel=map_specs["npixel"],smooth=map_specs["smooth"],fov=map_specs["fov"])
+
+	#Measure the features
+	ensemble_realization = measurer(maps,**kwargs)
+
+	#Add the realization label
+	ensemble_realization["realization"] = realization
+
+	#Return 
+	return ensemble_realization
+
+#Aggregate results of computation
+def _assemble(ens_list):
+	return Ensemble.concat(ens_list,axis=0,ignore_index=True)
+
+################################
+#####FeatureDatabase class######
+################################
+
 class FeatureDatabase(object):
 
 	#Global options
-	nzbins = 5
-	npixel = 512
-	smooth = 0.5*u.arcmin
-	fov = 3.5*u.deg
-	add_noise = False
+	map_specs = {
+	"nzbins" : 5,
+	"npixel" : 512,
+	"smooth" : 0.5*u.arcmin,
+	"fov" : 3.5*u.deg,
+	"add_noise" : False
+	}
 
 	#Create a connection to a database
 	def __init__(self,name,**kwargs):
 		self.connection = create_engine("sqlite:///"+name)
 		for key in kwargs.keys():
-			setattr(self,key,kwargs[key])
+			self.map_specs[key] = kwargs[key]
 
 	#For context manager
 	def __enter__(self):
@@ -65,7 +115,7 @@ class FeatureDatabase(object):
 	#Process all the realizations in a particular sub-catalog; add the results to the database#
 	###########################################################################################
 
-	def add_features(self,table_name,sub_catalog,measurer,pool=None,**kwargs):
+	def add_features(self,table_name,sub_catalog,measurer,extra_columns=None,pool=None,**kwargs):
 
 		"""
 
@@ -77,6 +127,9 @@ class FeatureDatabase(object):
 
 		:param measurer: gets called on the list of convergence maps in the particular realization, must return an Ensemble
 		:type measurer: callable
+
+		:param extra_columns: dictionary whose keys are the names of the extra columns to insert in the database, and whose values are the column values for the sub_catalog
+		:type extra_columns: dict.
 
 		:param kwargs: passed to the measurer
 		:type kwargs: dict.
@@ -91,20 +144,25 @@ class FeatureDatabase(object):
 		last_realization = sub_catalog.last_realization
 
 		#Compute Ensemble of realizations
-		ensemble_sub_catalog = Ensemble.compute(range(first_realization,last_realization+1),callback_loader=self.process_realization,assemble=self._assemble,pool=pool,sub_catalog=sub_catalog,measurer=measurer,**kwargs)
+		ensemble_sub_catalog = Ensemble.compute(range(first_realization,last_realization+1),callback_loader=process_realization,assemble=_assemble,pool=pool,map_specs=self.map_specs,db_type=self.__class__,sub_catalog=sub_catalog,measurer=measurer,**kwargs)
 
 		#Add the cosmological parameters as additional columns
 		ensemble_sub_catalog["Om"] = sub_catalog.cosmology.Om0
 		ensemble_sub_catalog["w"] = sub_catalog.cosmology.w0
 		ensemble_sub_catalog["sigma8"] = sub_catalog.cosmology.sigma8
 
+		#Add the extra columns
+		if extra_columns is not None:
+			for key in extra_columns.keys():
+				
+				if key in ensemble_sub_catalog.columns:
+					raise ValueError("Column {0} already present in database!".format(key))
+				
+				ensemble_sub_catalog[key] = extra_columns[key]
+
 		#Insert into the database
 		self.insert(ensemble_sub_catalog,table_name)
 
-
-	@staticmethod
-	def _assemble(ens_list):
-		return Ensemble.concat(ens_list,axis=0,ignore_index=True)
 
 	###############################################
 	#Create convergence maps out of shear catalogs#
@@ -135,44 +193,4 @@ class FeatureDatabase(object):
 
 		#Return
 		return convergence_maps
-
-	#############################################
-	#Measure features in a partcular realization#
-	#############################################
-
-	@classmethod
-	def process_realization(cls,realization,sub_catalog,measurer,**kwargs):
-
-		"""
-		:param realization: number of the realization to process
-		:type realization: int.
-
-		:param sub_catalog: sub catalog that the realization belongs to
-		:type sub_catalog: SimulationSubCatalog
-
-		:param measurer: gets called on the list of convergence maps in the particular realization, must return an Ensemble
-		:type measurer: callable
-
-		:param kwargs: passed to the measurer
-		:type kwargs: dict.
-
-		:returns: Ensemble
-
-		"""
-
-		#Construct file names of shear and position catalogs
-		position_files = [ "../data/positions_bin{0}.fits".format(n) for n in range(1,cls.nzbins+1) ]
-		shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,cls.nzbins+1) ]
-
-		#Construct the maps
-		maps = cls.make_maps(shear_files,position_files,npixel=cls.npixel,smooth=cls.smooth,fov=cls.fov)
-
-		#Measure the features
-		ensemble_realization = measurer(maps,**kwargs)
-
-		#Add the realization label
-		ensemble_realization["realization"] = realization
-
-		#Return 
-		return ensemble_realization
 	
