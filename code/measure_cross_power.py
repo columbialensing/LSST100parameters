@@ -55,7 +55,7 @@ def main(pool):
 	batch = SimulationBatch.current()
 
 	#Cross power spectrum database
-	db = FeatureDatabase("../data/cross_spectra.sqlite")
+	db = FeatureDatabase(os.path.join(batch.environment.storage,"cross_spectra.sqlite"))
 
 	#Process these models
 	models = batch.models
