@@ -1,10 +1,12 @@
 #!/usr/bin/env python-mpi
 
 import sys,os
+import argparse
 
 from library.featureDB import FeatureDatabase
 
 from lenstools.pipeline import SimulationBatch
+from lenstools.pipeline.settings import EnvironmentSettings
 from lenstools.statistics.ensemble import Ensemble
 from lenstools.utils.decorators import Parallelize
 
@@ -51,24 +53,33 @@ def cross_power(maps,ell_edges,indices):
 @Parallelize.masterworker
 def main(pool):
 
+	#parse command line arguments
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-e","--environment",dest="environment",help="Environment options file")
+	parser.add_argument("-c","--config",dest="config",help="Configuration file")
+	parser.add_argument("id",nargs="*")
+	cmd_args = parser.parse_args()
+
 	#Handle on the current batch
-	batch = SimulationBatch.current()
-
-	#Cross power spectrum database
-	db = FeatureDatabase(os.path.join(batch.environment.storage,"cross_spectra.sqlite"))
-
-	#Process these models
-	models = batch.models
+	batch = SimulationBatch(EnvironmentSettings.read(cmd_args.environment))
 
 	#Use these bin edges and cross bins
 	ell_edges = pd.read_pickle("../data/edges.pkl")["ell_edges"].values
 	indices = zip(*np.triu_indices(db.map_specs["nzbins"]))
 
-	#Execute
-	for n,model in enumerate(models):
-		for s,sc in enumerate(model.getCollection("512b260").getCatalog("Shear").subcatalogs):
-			print("[+] Measuring cross spectrum in model {0}, sub-catalog {1}...".format(n+1,s+1))
-			db.add_features("features",sc,measurer=cross_power,extra_columns={"model":n+1,"sub_catalog":s+1},pool=pool,ell_edges=ell_edges,indices=indices)
+	#Cross power spectrum database
+	with FeatureDatabase(os.path.join(batch.environment.storage,"cross_spectra.sqlite")) as db:
+		
+		for model_id in cmd_args.id:
+			
+			#Handle on the model
+			cosmo_id,n = model_id.split("|") 
+			model = batch.getModel(cosmo_id)
+			
+			#Process sub catalogs
+			for s,sc in enumerate(model.getCollection("512b260").getCatalog("Shear").subcatalogs):
+				print("[+] Measuring cross spectrum in model {0}, sub-catalog {1}...".format(n+1,s+1))
+				db.add_features("features",sc,measurer=cross_power,extra_columns={"model":int(n)+1,"sub_catalog":s+1},pool=pool,ell_edges=ell_edges,indices=indices)
 
 
 if __name__=="__main__":
