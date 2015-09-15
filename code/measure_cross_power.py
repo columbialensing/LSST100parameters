@@ -65,10 +65,12 @@ def main(pool):
 
 	#Use these bin edges and cross bins
 	ell_edges = pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["ell_edges"].values
-	indices = zip(*np.triu_indices(db.map_specs["nzbins"]))
 
 	#Cross power spectrum database
 	with FeatureDatabase(os.path.join(batch.environment.storage,"cross_spectra.sqlite")) as db:
+
+		#Redshift bin index pairs
+		indices = zip(*np.triu_indices(db.map_specs["nzbins"]))
 		
 		for model_id in cmd_args.id:
 			
