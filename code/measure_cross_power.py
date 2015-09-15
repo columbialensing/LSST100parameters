@@ -64,7 +64,7 @@ def main(pool):
 	batch = SimulationBatch(EnvironmentSettings.read(cmd_args.environment))
 
 	#Use these bin edges and cross bins
-	ell_edges = pd.read_pickle("../data/edges.pkl")["ell_edges"].values
+	ell_edges = pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["ell_edges"].values
 	indices = zip(*np.triu_indices(db.map_specs["nzbins"]))
 
 	#Cross power spectrum database
