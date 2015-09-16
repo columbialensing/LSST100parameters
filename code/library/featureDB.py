@@ -38,7 +38,7 @@ def process_realization(realization,db_type,map_specs,sub_catalog,measurer,**kwa
 	"""
 
 	#Construct file names of shear and position catalogs
-	position_files = [ "../data/positions_bin{0}.fits".format(n) for n in range(1,map_specs["nzbins"]+1) ]
+	position_files = [ "/global/homes/a/apetri/LSST100Parameters/data/positions_bin{0}.fits".format(n) for n in range(1,map_specs["nzbins"]+1) ]
 	shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,map_specs["nzbins"]+1) ]
 
 	#Construct the maps

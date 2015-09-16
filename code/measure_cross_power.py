@@ -80,8 +80,8 @@ def main(pool):
 			
 			#Process sub catalogs
 			for s,sc in enumerate(model.getCollection("512b260").getCatalog("Shear").subcatalogs):
-				print("[+] Measuring cross spectrum in model {0}, sub-catalog {1}...".format(n+1,s+1))
-				db.add_features("features",sc,measurer=cross_power,extra_columns={"model":int(n)+1,"sub_catalog":s+1},pool=pool,ell_edges=ell_edges,indices=indices)
+				print("[+] Measuring cross spectrum in model {0}, sub-catalog {1}...".format(int(n),s+1))
+				db.add_features("features",sc,measurer=cross_power,extra_columns={"model":int(n),"sub_catalog":s+1},pool=pool,ell_edges=ell_edges,indices=indices)
 
 
 if __name__=="__main__":
