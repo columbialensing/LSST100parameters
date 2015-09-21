@@ -173,6 +173,10 @@ class FeatureDatabase(Database):
 	def _suppress_indices(sub_indices):
 		return [key for key in sub_indices.keys() if sub_indices[key] is None]
 
+	@staticmethod
+	def features_with_sub_indices(features,labels):
+		return list(product(features,range(len(labels))))
+
 	#PCA on the cosmological models, for each realization
 	def pca_models(self,features,sub_indices,realizations,num_modes,db_name,table_name,base_table_name="features",location=None,scale=None):
 		
@@ -228,7 +232,7 @@ class FeatureDatabase(Database):
 				suppress = self._suppress_indices(sub_indices)
 				if len(suppress):
 					labels,ens = ens.suppress_indices(by=["model"],suppress=suppress,columns=features)
-					features = list(product(features,range(len(labels))))
+					features = self.features_with_sub_indices(features,labels)
 
 				#Safety check: there should be exactly one row per model at this point
 				assert len(ens)==len(ens["model"].drop_duplicates()),"There should be exactly one line per model in the Ensemble before performing the PCA!"
