@@ -1,6 +1,6 @@
 #!/usr/bin/env python-mpi
 
-import library.driver as driver
+import library.driver_mpi as driver
 from lenstools.statistics.ensemble import Ensemble
 
 import numpy as np

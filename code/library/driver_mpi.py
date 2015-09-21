@@ -25,7 +25,10 @@ def main(db_name,measurer,pool,**kwargs):
 	batch = SimulationBatch(EnvironmentSettings.read(cmd_args.environment))
 
 	#Populate database
-	with FeatureDatabase(os.path.join(batch.environment.storage,db_name)) as db:
+	db_full_name = os.path.join(batch.environment.storage,db_name)
+	with FeatureDatabase(db_full_name) as db:
+
+		print("[+] Populating table 'features' of database {0}...".format(db_full_name))
 		
 		for model_id in cmd_args.id:
 			

@@ -4,6 +4,7 @@
 
 from __future__ import division,print_function,with_statement
 import sys,os
+from itertools import product
 
 from lenstools.catalog import ShearCatalog
 from lenstools.statistics.ensemble import Ensemble
@@ -42,7 +43,7 @@ def process_realization(realization,db_type,map_specs,sub_catalog,measurer,**kwa
 	shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,map_specs["nzbins"]+1) ]
 
 	#Construct the maps
-	maps = db_type.make_maps(shear_files,position_files,npixel=map_specs["npixel"],smooth=map_specs["smooth"],fov=map_specs["fov"])
+	maps = db_type.make_maps(shear_files,position_files,npixel=map_specs["npixel"],smooth=map_specs["smooth"],fov=map_specs["fov"],add_noise=map_specs["add_noise"])
 
 	#Measure the features
 	ensemble_realization = measurer(maps,**kwargs)
@@ -135,7 +136,7 @@ class FeatureDatabase(Database):
 	###############################################
 	
 	@staticmethod
-	def make_maps(shear_files,position_files,npixel=512,smooth=0.5*u.arcmin,fov=3.5*u.deg):
+	def make_maps(shear_files,position_files,npixel=512,smooth=0.5*u.arcmin,fov=3.5*u.deg,add_noise=False):
 
 		"""
 		:param shear_files: list of files that contain the shear catalogs
@@ -159,4 +160,95 @@ class FeatureDatabase(Database):
 
 		#Return
 		return convergence_maps
+
+	##############################
+	#Principal component analysis#
+	##############################
+
+	@staticmethod
+	def _sql_sub_indices(sub_indices):
+		return " AND ".join(["{0}={1}".format(key,sub_indices[key]) for key in sub_indices.keys() if sub_indices[key] is not None])
+
+	@staticmethod
+	def _suppress_indices(sub_indices):
+		return [key for key in sub_indices.keys() if sub_indices[key] is None]
+
+	#PCA on the cosmological models, for each realization
+	def pca_models(self,features,sub_indices,realizations,num_modes,db_name,table_name,base_table_name="features",location=None,scale=None):
+		
+		"""
+		Perform Principal Component Analysis for each realization contained in the database
+
+		:param features: list of features to consider
+		:type features: list. 
+
+		:param sub_indices: dictionary with the sub indices to select (typically redshift indices); the keys are the column names and the values are the corresponding column values
+		:type sub_indices: dict.
+
+		:param realizations: repeat the PCA for these realizations
+		:type realizations: list.
+
+		:param num_modes: number of PCA modes to include in the PCA database
+		:type num_modes: int.
+
+		:param db_name: name of the Database on which to write the PCA information
+		:type db_name: str.
+
+		:param table_name: database table name on which to write the PCA information
+		:type table_name: str.
+
+		:param base_table_name: table name to query in the current Database
+		:type base_table_name: str.
+
+		:param location: perform the PCA with respect to this location
+		:type location: Series
+
+		:param scale: scale the features with these weights before performing the PCA
+		:type scale: Series
+
+		"""
+
+		#We use a context manager to populate the Database that contains the PCA information
+		with self.__class__(db_name) as db:
+
+			#Cycle over realizations
+			for realization in realizations:
+
+				#Build the query
+				query = "SELECT * FROM {0} WHERE realization={0}"
+				sub_indices_query = self._sql_sub_indices(sub_indices)
+				if len(sub_indices_query):
+					query += " AND " + sub_indices_query
+
+				#Query the Database
+				print("[+] Executing SQL query: {0}".format(query))
+				ens = self.query(query)
+
+				#Contract the sub_indices
+				suppress = self._suppress_indices(sub_indices)
+				if len(suppress):
+					labels,ens = ens.suppress_indices(by=["model"],suppress=suppress,columns=features)
+					features = list(product(features,range(len(labels))))
+
+				#Safety check: there should be exactly one row per model at this point
+				assert len(ens)==len(ens["model"].drop_duplicates()),"There should be exactly one line per model in the Ensemble before performing the PCA!"
+
+				#Perform the PCA
+				pca = ens[features].principalComponents(location=location,scale=scale)
+				mode_directions = pca.directions.head(num_modes)
+				mode_directions["eigenvalue"] = pca.eigenvalues[:num_modes]
+				mode_directions["realization"] = realization
+
+				#Fill in the additional indices
+				for key in sub_indices.keys():
+					if sub_indices[key] is not None:
+						mode_directions[key] = sub_indices[key]
+
+				#Insert in the Database
+				db.insert(mode_directions,table_name)
+
+	########################################################################################################################################################################################
+
+	def pca_sub_catalog(self):
+		pass
 	
