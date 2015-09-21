@@ -1,14 +1,7 @@
 #!/usr/bin/env python-mpi
 
-import sys,os
-import argparse
-
-from library.featureDB import FeatureDatabase
-
-from lenstools.pipeline import SimulationBatch
-from lenstools.pipeline.settings import EnvironmentSettings
+import library.driver as driver
 from lenstools.statistics.ensemble import Ensemble
-from lenstools.utils.decorators import Parallelize
 
 import numpy as np
 import pandas as pd
@@ -49,40 +42,13 @@ def cross_power(maps,ell_edges,indices):
 	return ensemble
 
 
-#Main execution
-@Parallelize.masterworker
-def main(pool):
-
-	#parse command line arguments
-	parser = argparse.ArgumentParser()
-	parser.add_argument("-e","--environment",dest="environment",help="Environment options file")
-	parser.add_argument("-c","--config",dest="config",help="Configuration file")
-	parser.add_argument("id",nargs="*")
-	cmd_args = parser.parse_args()
-
-	#Handle on the current batch
-	batch = SimulationBatch(EnvironmentSettings.read(cmd_args.environment))
-
-	#Use these bin edges and cross bins
-	ell_edges = pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["ell_edges"].values
-
-	#Cross power spectrum database
-	with FeatureDatabase(os.path.join(batch.environment.storage,"cross_spectra.sqlite")) as db:
-
-		#Redshift bin index pairs
-		indices = zip(*np.triu_indices(db.map_specs["nzbins"]))
-		
-		for model_id in cmd_args.id:
-			
-			#Handle on the model
-			cosmo_id,n = model_id.split("|") 
-			model = batch.getModel(cosmo_id)
-			
-			#Process sub catalogs
-			for s,sc in enumerate(model.getCollection("512b260").getCatalog("Shear").subcatalogs):
-				print("[+] Measuring cross spectrum in model {0}, sub-catalog {1}...".format(int(n),s+1))
-				db.add_features("features",sc,measurer=cross_power,extra_columns={"model":int(n),"sub_catalog":s+1},pool=pool,ell_edges=ell_edges,indices=indices)
-
+###############################################################################################
 
 if __name__=="__main__":
-	main(None)
+
+	#Redshift bin index pairs and multipoles
+	indices = zip(*np.triu_indices(5))
+	ell_edges = pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["ell_edges"].values
+
+	#Execute
+	driver.main("cross_spectra.sqlite",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
