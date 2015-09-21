@@ -215,7 +215,7 @@ class FeatureDatabase(Database):
 			for realization in realizations:
 
 				#Build the query
-				query = "SELECT * FROM {0} WHERE realization={0}"
+				query = "SELECT * FROM {0} WHERE realization={1}".format(base_table_name,realization)
 				sub_indices_query = self._sql_sub_indices(sub_indices)
 				if len(sub_indices_query):
 					query += " AND " + sub_indices_query
@@ -237,6 +237,7 @@ class FeatureDatabase(Database):
 				pca = ens[features].principalComponents(location=location,scale=scale)
 				mode_directions = pca.directions.head(num_modes)
 				mode_directions["eigenvalue"] = pca.eigenvalues[:num_modes]
+				mode_directions["eigenvector"] = range(1,num_modes+1)
 				mode_directions["realization"] = realization
 
 				#Fill in the additional indices
