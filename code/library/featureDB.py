@@ -254,6 +254,82 @@ class FeatureDatabase(Database):
 
 	########################################################################################################################################################################################
 
-	def pca_sub_catalog(self):
-		pass
+	#PCA on the sub_catalogs belonging to a single model
+	def pca_sub_catalog(self,features,sub_indices,model,sub_catalogs,num_modes,db_name,table_name,base_table_name="features",location=None,scale=None):
+		
+		"""
+		Perform Principal Component Analysis for each realization contained in the database
+
+		:param features: list of features to consider
+		:type features: list. 
+
+		:param sub_indices: dictionary with the sub indices to select (typically redshift indices); the keys are the column names and the values are the corresponding column values
+		:type sub_indices: dict.
+
+		:param model: model to process
+		:type model: int.
+
+		:param sub_catalogs: repeat the PCA for these sub catalogs
+		:type sub_catalogs: list.
+
+		:param num_modes: number of PCA modes to include in the PCA database
+		:type num_modes: int.
+
+		:param db_name: name of the Database on which to write the PCA information
+		:type db_name: str.
+
+		:param table_name: database table name on which to write the PCA information
+		:type table_name: str.
+
+		:param base_table_name: table name to query in the current Database
+		:type base_table_name: str.
+
+		:param location: perform the PCA with respect to this location
+		:type location: Series
+
+		:param scale: scale the features with these weights before performing the PCA
+		:type scale: Series
+
+		"""
+
+		#We use a context manager to populate the Database that contains the PCA information
+		with self.__class__(db_name) as db:
+
+			#Cycle over realizations
+			for sub_catalog in sub_catalogs:
+
+				#Build the query
+				query = "SELECT * FROM {0} WHERE model={1} AND sub_catalog={2}".format(base_table_name,model,sub_catalog)
+				sub_indices_query = self._sql_sub_indices(sub_indices)
+				if len(sub_indices_query):
+					query += " AND " + sub_indices_query
+
+				#Query the Database
+				print("[+] Executing SQL query: {0}".format(query))
+				ens = self.query(query)
+
+				#Contract the sub_indices
+				suppress = self._suppress_indices(sub_indices)
+				if len(suppress):
+					labels,ens = ens.suppress_indices(by=["model"],suppress=suppress,columns=features)
+					features = self.features_with_sub_indices(features,labels)
+
+				#Safety check: there should be exactly one row per model at this point
+				assert len(ens)==len(ens["realization"].drop_duplicates()),"There should be exactly one line per realization in the Ensemble before performing the PCA!"
+
+				#Perform the PCA
+				pca = ens[features].principalComponents(location=location,scale=scale)
+				mode_directions = pca.directions.head(num_modes)
+				mode_directions["eigenvalue"] = pca.eigenvalues[:num_modes]
+				mode_directions["eigenvector"] = range(1,num_modes+1)
+				mode_directions["model"] = model
+				mode_directions["sub_catalog"] = sub_catalog
+
+				#Fill in the additional indices
+				for key in sub_indices.keys():
+					if sub_indices[key] is not None:
+						mode_directions[key] = sub_indices[key]
+
+				#Insert in the Database
+				db.insert(mode_directions,table_name)
 	
