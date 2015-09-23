@@ -232,13 +232,15 @@ class FeatureDatabase(Database):
 				suppress = self._suppress_indices(sub_indices)
 				if len(suppress):
 					labels,ens = ens.suppress_indices(by=["model"],suppress=suppress,columns=features)
-					features = self.features_with_sub_indices(features,labels)
+					features_with_indices = self.features_with_sub_indices(features,labels)
+				else:
+					features_with_indices = features
 
 				#Safety check: there should be exactly one row per model at this point
 				assert len(ens)==len(ens["model"].drop_duplicates()),"There should be exactly one line per model in the Ensemble before performing the PCA!"
 
 				#Perform the PCA
-				pca = ens[features].principalComponents(location=location,scale=scale)
+				pca = ens[features_with_indices].principalComponents(location=location,scale=scale)
 				mode_directions = pca.directions.head(num_modes)
 				mode_directions["eigenvalue"] = pca.eigenvalues[:num_modes]
 				mode_directions["eigenvector"] = range(1,num_modes+1)
