@@ -20,17 +20,18 @@ class Line(object):
 
 
 	#Make three lines in parameter space, varying one parameter at a time
-	def draw(self,start={"Om":0.26,"w":-1,"sigma8":0.8},end={"Om":0.29,"w":-0.8,"sigma8":1.0},npoints=100,order=["Om","w","sigma8"],normalize=True):
+	def draw(self,start={"Om":0.26,"w":-1,"sigma8":0.8},end={"Om":0.29,"w":-0.8,"sigma8":1.0},npoints=100,normalize=True):
 	
-		npar = len(start.keys())
+		parameters = start.keys()
+		npar = len(parameters)
 		line = dict()
 
 		#One Ensemble for every line
-		for p in order:
-			line[p] = Ensemble(np.zeros((npoints,npar)),columns=order)
+		for p in parameters:
+			line[p] = Ensemble(np.zeros((npoints,npar)),columns=parameters)
 		
 			#Fill in with start value
-			for q in order:
+			for q in parameters:
 				line[p][q] = start[q]
 
 			#Vary one parameter at a time
@@ -40,8 +41,8 @@ class Line(object):
 		#Compute the pca components along the single parameter lines
 		components = dict()
 	
-		for p in line.keys():
-			feature_on_line = self.emulator.predict(line[p])
+		for p in parameters:
+			feature_on_line = self.emulator.predict(line[p][self.emulator.parameter_names])
 			components[p] = self.pca.transform(feature_on_line)
 
 			if normalize:
