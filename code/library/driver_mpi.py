@@ -7,6 +7,21 @@ from lenstools.pipeline.settings import EnvironmentSettings
 
 from library.featureDB import FeatureDatabase
 
+
+#####################
+#LSSTSimulationBatch#
+#####################
+
+class LSSTSimulationBatch(SimulationBatch):
+
+	@property
+	def fiducial(self):
+		return [ m for m in self.models if (m.cosmology.Om0==0.26 and m.cosmology.w0==-1 and m.cosmology.sigma8==0.8) ][0]
+
+	@property
+	def non_fiducial(self):
+		return [ m for m in self.models if (m.cosmology.Om0!=0.26 or m.cosmology.w0!=-1 or m.cosmology.sigma8!=0.8) ]
+
 ############################
 #######Main driver##########
 ############################
@@ -22,7 +37,7 @@ def main(db_name,measurer,pool,**kwargs):
 	cmd_args = parser.parse_args()
 
 	#Handle on the current batch
-	batch = SimulationBatch(EnvironmentSettings.read(cmd_args.environment))
+	batch = LSSTSimulationBatch(EnvironmentSettings.read(cmd_args.environment))
 
 	#Populate database
 	db_full_name = os.path.join(batch.environment.storage,db_name)
