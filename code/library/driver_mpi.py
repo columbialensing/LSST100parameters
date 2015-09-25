@@ -2,25 +2,9 @@ import os
 import argparse
 
 from lenstools.utils.decorators import Parallelize
-from lenstools.pipeline import SimulationBatch
 from lenstools.pipeline.settings import EnvironmentSettings
 
-from library.featureDB import FeatureDatabase
-
-
-#####################
-#LSSTSimulationBatch#
-#####################
-
-class LSSTSimulationBatch(SimulationBatch):
-
-	@property
-	def fiducial(self):
-		return [ m for m in self.models if (m.cosmology.Om0==0.26 and m.cosmology.w0==-1 and m.cosmology.sigma8==0.8) ][0]
-
-	@property
-	def non_fiducial(self):
-		return [ m for m in self.models if (m.cosmology.Om0!=0.26 or m.cosmology.w0!=-1 or m.cosmology.sigma8!=0.8) ]
+from library.featureDB import FeatureDatabase,LSSTSimulationBatch
 
 ############################
 #######Main driver##########

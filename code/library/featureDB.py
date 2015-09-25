@@ -9,6 +9,7 @@ from itertools import product
 from lenstools.catalog import ShearCatalog
 from lenstools.statistics.ensemble import Ensemble
 from lenstools.statistics.database import Database
+from lenstools.pipeline import SimulationBatch
 
 import numpy as np
 import astropy.units as u
@@ -334,4 +335,19 @@ class FeatureDatabase(Database):
 
 				#Insert in the Database
 				db.insert(mode_directions,table_name)
+
+
+#####################
+#LSSTSimulationBatch#
+#####################
+
+class LSSTSimulationBatch(SimulationBatch):
+
+	@property
+	def fiducial(self):
+		return [ m for m in self.models if (m.cosmology.Om0==0.26 and m.cosmology.w0==-1 and m.cosmology.sigma8==0.8) ][0]
+
+	@property
+	def non_fiducial(self):
+		return [ m for m in self.models if (m.cosmology.Om0!=0.26 or m.cosmology.w0!=-1 or m.cosmology.sigma8!=0.8) ]
 	
