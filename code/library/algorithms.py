@@ -7,7 +7,7 @@ import numpy as np
 #Study the effect on a particular feature when we vary a parameter at a time#
 #############################################################################
 
-class Line(object):
+class Manifold(object):
 
 	def __init__(self,emulator):
 		
@@ -26,7 +26,7 @@ class Line(object):
 		return self.pca.transform(self.emulator.predict(s[self.emulator.parameter_names])) 
 
 	#Make three lines in parameter space, varying one parameter at a time
-	def draw(self,start={"Om":0.26,"w":-1,"sigma8":0.8},end={"Om":0.29,"w":-0.8,"sigma8":1.0},npoints=100,normalize=True):
+	def draw_tangents(self,start={"Om":0.26,"w":-1,"sigma8":0.8},end={"Om":0.29,"w":-0.8,"sigma8":1.0},npoints=100,tangents=True):
 	
 		parameters = start.keys()
 		npar = len(parameters)
@@ -52,10 +52,10 @@ class Line(object):
 			components[p] = self.pca.transform(feature_on_line)
 
 		#Return the PCA components along the one parameter variation directions
-		return Components(components,normalize=normalize)
+		return Curve(components,tangents=tangents)
 
 	#Make lines in parameter space that correspond to nuisance parameters
-	def draw_nuisance(self,start,end,func,npoints=100,normalize=True,base={"Om":0.26,"w":-1,"sigma8":0.8}):
+	def draw_nuisance(self,start,end,func,npoints=100,tangents=True,base={"Om":0.26,"w":-1,"sigma8":0.8}):
 
 		nuisance = start.keys()
 		parameters = base.keys()
@@ -74,15 +74,15 @@ class Line(object):
 			components[n] = self.pca.transform(nuisance_features)
 
 		#Return
-		return Components(components,normalize=normalize)
+		return Curve(components,tangents=tangents)
 
 
-class Components(object):
+class Curve(object):
 
-	def __init__(self,components,normalize):
+	def __init__(self,components,tangents):
 		self.components = components
-		if normalize:
-			self.normalize()
+		if tangents:
+			self.tangents()
 
 	def __getitem__(self,n):
 		return self.components[n]
@@ -100,10 +100,9 @@ class Components(object):
 		return self[self.directions[0]].columns
 
 	#Normalize
-	def normalize(self):
+	def tangents(self):
 		for p in self.components.keys():
-			self.components[p] = self.components[p].apply(lambda c:c-c[0],axis=0)
-			self.components[p] = self.components[p].apply(lambda r:r/np.sqrt((r**2).sum()),axis=1)
+			self.components[p] = self.components[p].diff().apply(lambda r:r/np.sqrt((r**2).sum()),axis=1)
 	
 	#Dot two directions together
 	def dot(self,v1,v2,other=None):
@@ -113,16 +112,17 @@ class Components(object):
 		
 		return self[v1[0]].iloc[v1[1]].dot(other[v2[0]].iloc[v2[1]])
 
-	#Project on a plane defined by b1 and b2; returns components along b1 and b2
-	def project(self,b1,b2,names=None):
+	#Project on a hyperplane defined by a tuple of linearly independent vectors; returns components along these vectors
+	def project(self,v,names=None):
 		
-		#Build projection matrix
-		projection_matrix = Ensemble(np.zeros((self.ncol,2)),columns=names,index=self.feature_names)
-		columns = projection_matrix.columns
-		cos_angle = b1.dot(b2)
-		projection_matrix[columns[0]] = (b1 - b2*cos_angle) / (1 - cos_angle**2)
-		projection_matrix[columns[1]] = (b2 - b1*cos_angle) / (1 - cos_angle**2)
+		#Cast v in matrix format, compute the cosines of the angles between all pairs of vector
+		vectors = Ensemble.from_records(v,index=names)
+		cosines = vectors.dot(vectors.T)
 
-		#Compute projections
-		return self.__class__(dict((p,self[p].dot(projection_matrix)) for p in self.directions),normalize=False)
+		#Compute matrix of projectors along each of the basis vectors
+		projectors = Ensemble(np.linalg.solve(cosines.values,np.eye(len(vectors))),index=names,columns=names)
+		projection_matrix = vectors.T.dot(projectors)
+
+		#Return the projected components
+		return self.__class__(dict((p,self[p].dot(projection_matrix)) for p in self.directions),tangents=False)
 
