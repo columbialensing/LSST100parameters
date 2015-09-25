@@ -51,4 +51,4 @@ if __name__=="__main__":
 	ell_edges = pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["ell_edges"].values
 
 	#Execute
-	driver.main("cross_spectra.sqlite",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+	driver.main("cross_spectra.sqlite","features",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)

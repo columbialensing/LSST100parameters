@@ -11,7 +11,7 @@ from library.featureDB import FeatureDatabase,LSSTSimulationBatch
 ############################
 
 @Parallelize.masterworker
-def main(db_name,measurer,pool,**kwargs):
+def main(db_name,table_name,measurer,pool,**kwargs):
 
 	#parse command line arguments
 	parser = argparse.ArgumentParser()
@@ -38,4 +38,4 @@ def main(db_name,measurer,pool,**kwargs):
 			#Process sub catalogs
 			for s,sc in enumerate(model.getCollection("512b260").getCatalog("Shear").subcatalogs):
 				print("[+] Processing model {0}, sub-catalog {1}...".format(int(n),s+1))
-				db.add_features("features",sc,measurer=measurer,extra_columns={"model":int(n),"sub_catalog":s+1},pool=pool,**kwargs)
+				db.add_features(table_name,sc,measurer=measurer,extra_columns={"model":int(n),"sub_catalog":s+1},pool=pool,**kwargs)
