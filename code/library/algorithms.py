@@ -76,6 +76,17 @@ class Manifold(object):
 		#Return
 		return Curve(components,tangents=tangents)
 
+	#Draw a grid of projected features
+	def draw_grid(self,parameters,projection_vectors,names=None):
+
+		#Emulate the features and project
+		emulated_features = self.emulator.predict(parameters)
+		projected_features = self.pca.transform(emulated_features).project(projection_vectors,names)
+
+		#return to user
+		return Grid(Ensemble.concat((parameters,projected_features),axis=1))
+
+###################################################################################################################
 
 class Curve(object):
 
@@ -115,4 +126,14 @@ class Curve(object):
 	#Project on a hyperplane defined by a tuple of linearly independent vectors; returns components along these vectors
 	def project(self,v,names=None):
 		return self.__class__(dict((p,self[p].project(v,names)) for p in self.directions),tangents=False)
+
+###################################################################################################################
+
+class Grid(object):
+
+	def __init__(self,points):
+		self.points = points
+
+	def plot(self):
+		pass
 
