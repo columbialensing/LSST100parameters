@@ -114,15 +114,5 @@ class Curve(object):
 
 	#Project on a hyperplane defined by a tuple of linearly independent vectors; returns components along these vectors
 	def project(self,v,names=None):
-		
-		#Cast v in matrix format, compute the cosines of the angles between all pairs of vector
-		vectors = Ensemble.from_records(v,index=names)
-		cosines = vectors.dot(vectors.T)
-
-		#Compute matrix of projectors along each of the basis vectors
-		projectors = Ensemble(np.linalg.solve(cosines.values,np.eye(len(vectors))),index=names,columns=names)
-		projection_matrix = vectors.T.dot(projectors)
-
-		#Return the projected components
-		return self.__class__(dict((p,self[p].dot(projection_matrix)) for p in self.directions),tangents=False)
+		return self.__class__(dict((p,self[p].project(v,names)) for p in self.directions),tangents=False)
 
