@@ -2,6 +2,11 @@ from lenstools.statistics.ensemble import Ensemble,Series
 from lenstools.statistics.constraints import Emulator
 import numpy as np
 
+try:
+	import matplotlib.pyplot as plt
+except ImportError:
+	plt = None
+
 
 #############################################################################
 #Study the effect on a particular feature when we vary a parameter at a time#
@@ -134,6 +139,38 @@ class Grid(object):
 	def __init__(self,points):
 		self.points = points
 
-	def plot(self):
-		pass
+	def plot2D(self,x,y,sweep_x,sweep_y,fix=None,color_x="black",color_y="red",ax=None,**kwargs):
+
+		#Create plotting ax
+		if ax is None:
+			fig,ax = plt.subplots() 
+		
+		#Slice the grid on fixed values of some of the parameters
+		try:
+			query_slice = " and ".join(["{0}=={1}".format(key,fix[key]) for key in fix.keys()])
+			grid_slice = self.points.query(query_slice)
+		except (ValueError,AttributeError):
+			grid_slice = self.points
+
+		#Plot the horizontal lines
+		gx = grid_slice.groupby(sweep_y)
+		for vy in gx.grouper.levels[0]:
+			lx = gx.get_group(vy)
+			ax.plot(lx[x],lx[y],color=color_x,**kwargs)
+
+		#Plot the vertical lines
+		gy = grid_slice.groupby(sweep_x)
+		for vx in gy.grouper.levels[0]:
+			ly = gy.get_group(vx)
+			ax.plot(ly[x],ly[y],color=color_y,**kwargs)
+
+		#Labels
+		ax.set_xlabel(x,fontsize=22)
+		ax.set_ylabel(y,fontsize=22)
+
+		#Return the ax
+		return ax
+
+
+
 
