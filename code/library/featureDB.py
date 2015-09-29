@@ -343,11 +343,22 @@ class FeatureDatabase(Database):
 
 class LSSTSimulationBatch(SimulationBatch):
 
+	def __init__(self,*args,**kwargs):
+
+		super(LSSTSimulationBatch,self).__init__(*args,**kwargs)
+		self._models = self.models
+		self._fiducial = [ m for m in self._models if (m.cosmology.Om0==0.26 and m.cosmology.w0==-1 and m.cosmology.sigma8==0.8) ][0]
+		self._non_fiducial = [ m for m in self.models if (m.cosmology.Om0!=0.26 or m.cosmology.w0!=-1 or m.cosmology.sigma8!=0.8) ]
+
 	@property
 	def fiducial(self):
-		return [ m for m in self.models if (m.cosmology.Om0==0.26 and m.cosmology.w0==-1 and m.cosmology.sigma8==0.8) ][0]
+		return self._fiducial
+
+	@property 
+	def fiducial_cosmo_id(self):
+		return self.fiducial.cosmo_id
 
 	@property
 	def non_fiducial(self):
-		return [ m for m in self.models if (m.cosmology.Om0!=0.26 or m.cosmology.w0!=-1 or m.cosmology.sigma8!=0.8) ]
+		return self._non_fiducial
 	
