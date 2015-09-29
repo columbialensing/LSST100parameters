@@ -15,7 +15,7 @@ def main(batch,cosmo_id,model_n,db_name,table_name,measurer,pool,**kwargs):
 	db_full_name = os.path.join(batch.environment.storage,db_name)
 	with FeatureDatabase(db_full_name) as db:
 
-		print("[+] Populating table 'features' of database {0}...".format(db_full_name))
+		print("[+] Populating table '{0}' of database {1}...".format(table_name,db_full_name))
 			
 		#Handle on the model 
 		model = batch.getModel(cosmo_id)
