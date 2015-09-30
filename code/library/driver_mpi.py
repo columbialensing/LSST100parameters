@@ -1,6 +1,7 @@
 import os
 import argparse
 
+import numpy as np
 from lenstools.utils.decorators import Parallelize
 from library.featureDB import FeatureDatabase
 
@@ -28,3 +29,15 @@ def measure(batch,cosmo_id,model_n,db_name,table_name,measurer,pool,**kwargs):
 ###################################################################
 #######Compute scores of a grid of parameter combinations##########
 ###################################################################
+
+@Parallelize.masterworker
+def chi2score(emulator,parameters,data,data_covariance,nchunks,pool):
+
+	#Score the data on each of the parameter combinations provided
+	scores = emulator.score(parameters,data,features_covariance=data_covariance,split_chunks=nchunks,pool=pool)
+
+	#Pop the parameter columns, compute the likelihoods out of the chi2
+	for p in parameters.columns:
+		scores.pop(p)
+
+	return scores,scores.apply(lambda c:np.exp(-0.5*c),axis=0)
