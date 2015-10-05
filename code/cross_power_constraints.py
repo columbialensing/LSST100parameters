@@ -1,12 +1,16 @@
 #!/usr/bin/env python-mpi
 
+import logging
 import numpy as np
 
 from lenstools.statistics.ensemble import Ensemble
 from lenstools.statistics.constraints import Emulator
+from lenstools.statistics.database import chi2database
+
 from library.featureDB import FeatureDatabase
 from library.algorithms import Manifold
-import library.driver_mpi as driver
+
+logging.basicConfig(level=logging.INFO)
 
 #Score parameters
 multipole_names = ["l{0}".format(n) for n in range(1,51)]
@@ -54,4 +58,4 @@ with FeatureDatabase("../data/features/cross_spectra_fiducial.sqlite") as db:
 		specs[projected_feature_name]["data_covariance"] = pow.cov() / 1600
 
 #Execute
-driver.chi2database(db_name="../data/scores/power_cross_scores_LSST.sqlite",parameters=score_parameters,specs=specs,pool=None,nchunks=None)
+chi2database(db_name="../data/scores/power_cross_scores_LSST.sqlite",parameters=score_parameters,specs=specs,pool=None,nchunks=None)
