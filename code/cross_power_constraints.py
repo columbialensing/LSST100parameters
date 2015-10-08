@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 #Score parameters
 multipole_names = ["l{0}".format(n) for n in range(1,51)]
-score_parameters = Ensemble.meshgrid({"Om":np.linspace(0.24,0.27,100),"w":np.linspace(-1.1,-1.0,100)})
+score_parameters = Ensemble.meshgrid({"Om":np.linspace(0.256,0.2635,100),"w":np.linspace(-1.08,-0.92,100)})
 score_parameters["sigma8"] = 0.8
 
 #Specifications
@@ -58,4 +58,4 @@ with FeatureDatabase("../data/features/cross_spectra_fiducial.sqlite") as db:
 		specs[projected_feature_name]["data_covariance"] = pow.cov() / 1600
 
 #Execute
-chi2database(db_name="../data/scores/power_cross_scores_LSST.sqlite",parameters=score_parameters,specs=specs,pool=None,nchunks=None)
+chi2database(db_name="../data/scores/power_cross_scores_LSST_Om-w.sqlite",parameters=score_parameters,specs=specs,pool=None,nchunks=None,table_name="survey_mean")
