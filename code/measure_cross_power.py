@@ -69,6 +69,6 @@ if __name__=="__main__":
 		cosmo_id,n = model_id.split("|")
 		
 		if cosmo_id==batch.fiducial_cosmo_id:
-			driver.measure(batch,cosmo_id,int(n),"cross_spectra.sqlite","features_fiducial",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+			driver.measure(batch,cosmo_id,"Shear",int(n),"cross_spectra.sqlite","features_fiducial",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
 		else:
-			driver.measure(batch,cosmo_id,int(n),"cross_spectra.sqlite","features",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+			driver.measure(batch,cosmo_id,"Shear",int(n),"cross_spectra.sqlite","features",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
