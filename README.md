@@ -10,7 +10,12 @@ After cloning this repository, create inside it a file called _environment.ini_,
 	home = /path/to/your/home/portion/of/the/batch 
 	storage = /path/to/your/storage/portion/of/the/batch 
 
-The _home_ part (the light part of the batch) should now be available to you; the _storage_ part, i.e. the heavy part you will have to obtain from us. 
+After this you should be able to get a handle of the simulations with the lenstools SimulationBatch class
+
+	from lenstools.pipeline import SimulationBatch
+	batch = SimulationBatch.current()
+
+The _home_ part (the light part of the batch) should now be available to you; the _storage_ part (i.e. the heavy part, with all the simulated maps,catalogs, etc...) you will have to obtain from us. 
 
 ##How to compress/unpack the simulation products
 
