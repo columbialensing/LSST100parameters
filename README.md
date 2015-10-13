@@ -22,12 +22,12 @@ The _home_ part (the light part of the batch) should now be available to you; th
 
 ###Compress
 
-You should use the _compress.py_ script: you can tweak the _shear_ function to select which resource in the simulation batch you want to compress, the _models_ variable to select which models you want to compress and the _archive_names_ variable to tell the script where the compress archives should be put (these paths will be considered as relative to the storage part of the simulation batch). Then run the script in parallel
+You should use the _management/compress.py_ script: you can tweak the _shear_ function to select which resource in the simulation batch you want to compress, the _models_ variable to select which models you want to compress and the _archive_names_ variable to tell the script where the compress archives should be put (these paths will be considered as relative to the storage part of the simulation batch). Then run the script in parallel
 
 	mpiexec -n <len(models)> ./compress.py
 
 ###Unpack
 
-You should use the _unpack.py_ script: you have to tweak the _where=_ keyword in _batch.unpack_ method to tell the script where the gzipped archives are (not that you should be already in possession of the home part of this simulation set by cloning this repository). Then run the script in parallel
+You should use the _management/unpack.py_ script: you have to tweak the _where=_ keyword in _batch.unpack_ method to tell the script where the gzipped archives are (not that you should be already in possession of the home part of this simulation set by cloning this repository). Then run the script in parallel
 
 	mpiexec -n <number_of_archives> ./unpack.py
