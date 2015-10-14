@@ -7,15 +7,12 @@ import lenstools
 
 from lenstools.pipeline.simulation import SimulationBatch,LensToolsCosmology
 from lenstools.pipeline.settings import EnvironmentSettings,NGenICSettings,PlaneSettings,CatalogSettings
-from lenstools.pipeline.remote import LocalGit
 from lenstools.simulations.camb import CAMBSettings
 from lenstools.simulations.gadget2 import Gadget2Settings
 
 import numpy as np
 import astropy.units as u
 from astropy.cosmology import z_at_value
-
-git = LocalGit()
 
 #Settings
 camb = CAMBSettings()
@@ -33,57 +30,28 @@ lens_thickness_Mpc = 120.0
 ngenic.GlassFile = lenstools.data("dummy_glass_little_endian.dat")
 
 #Gadget
-gadget2.NumFilesPerSnapshot = 24
+gadget2.NumFilesPerSnapshot = 16
 
 #Init batch
-if "--git" in sys.argv:
+batch = SimulationBatch.current()
+if batch is None:
+	environment = EnvironmentSettings(home="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Home",storage="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Storage")
+	batch = SimulationBatch(environment)
 
-	batch = SimulationBatch.current(syshandler=git)
-	if batch is None:
-		environment = EnvironmentSettings(home="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Home",storage="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Storage")
-		batch = SimulationBatch(environment,syshandler=git)
-else:
-
-	batch = SimulationBatch.current()
-	if batch is None:
-		environment = EnvironmentSettings(home="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Home",storage="/Users/andreapetri/Documents/Columbia/Simulations/LSST100parameters/Test/Storage")
-		batch = SimulationBatch(environment)
-
-
-if "--tree" in sys.argv:
-
-	#Add all the models,collections and one realization
-	seed = np.random.randint(10000000)
-
-	p = np.load("../data/design.npy")
-	d = list()
-
-	for Om,w,si8 in p:
-	
-		#Lay down directory tree
-		cosmo = LensToolsCosmology(Om0=Om,Ode0=1-Om,w0=w,sigma8=si8)
-		model = batch.newModel(cosmo,parameters=["Om","Ol","w","si"])
-		collection = model.newCollection(box_size=box_size_Mpc_over_h*model.Mpc_over_h,nside=nside)
-		r = collection.newRealization(seed)
-
-		#Plane and catalog directories
-		pln = r.newPlaneSet(planes)
-		ct = collection.newCatalog(catalog)
-
-
+#Camb parameter file
 if "--camb" in sys.argv:
 
 	#CAMB settings
-	for model in batch.available:
+	for model in batch.models:
 		collection = model.collections[0]
 		collection.writeCAMB(z=np.array([0.0]),settings=camb)
 
-
+#Lens positions, gadget and ngenic parameter files
 if ("--lenses" in sys.argv) or ("--pfiles" in sys.argv):
 
 	#Compute comoving distance to maximum redshift for each model
 	d = list()
-	for model in batch.available:
+	for model in batch.models:
 		d.append(model.cosmology.comoving_distance(zmax))
 
 	#Compute lens spacings
@@ -92,7 +60,7 @@ if ("--lenses" in sys.argv) or ("--pfiles" in sys.argv):
 	#We want to make sure there are lenses up to the maximum of these distances
 	lens_distances = np.arange(lens_thickness_Mpc,d.max().to(u.Mpc).value + lens_thickness_Mpc,lens_thickness_Mpc) * u.Mpc
 
-	for model in batch.available:
+	for model in batch.models:
 
 		#Compute the redshifts of the Gadget snapshots
 		z = np.zeros_like(lens_distances.value)
