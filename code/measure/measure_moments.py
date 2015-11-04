@@ -26,7 +26,7 @@ def moments(maps,indices):
 		
 	#Measure the auto and cross power spectrum
 	for n,i in enumerate(indices):
-		moments[n] = maps[i].moments(connected=True)
+		moments_array[n] = maps[i].moments(connected=True)
 
 	#Build the Ensemble
 	columns = [ "sigma0","sigma1","S0","S1","S2","K0","K1","K2","K3" ]
