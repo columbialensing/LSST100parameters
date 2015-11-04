@@ -23,5 +23,5 @@ def measure(batch,cosmo_id,catalog_name,model_n,db_name,table_name,measurer,pool
 			
 		#Process sub catalogs
 		for s,sc in enumerate(model.getCollection("512b260").getCatalog(catalog_name).subcatalogs):
-			print("[+] Processing model {0}, sub-catalog {1}...".format(model_n,s+1))
+			print("[+] Processing model {0}, catalog {1}, sub-catalog {2}...".format(model_n,catalog_name,s+1))
 			db.add_features(table_name,sc,measurer=measurer,extra_columns={"model":model_n,"sub_catalog":s+1},pool=pool,**kwargs)
