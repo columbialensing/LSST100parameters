@@ -63,5 +63,6 @@ if __name__=="__main__":
 		
 		if cosmo_id==batch.fiducial_cosmo_id:
 			driver.measure(batch,cosmo_id,"Shear",int(n),"moments.sqlite","features_fiducial",measurer=moments,pool=None,indices=indices)
+			driver.measure(batch,cosmo_id,"ShearEmuIC",int(n),"moments.sqlite","features_fiducial_EmuIC",measurer=moments,pool=None,indices=indices)
 		else:
 			driver.measure(batch,cosmo_id,"Shear",int(n),"moments.sqlite","features",measurer=moments,pool=None,indices=indices)
