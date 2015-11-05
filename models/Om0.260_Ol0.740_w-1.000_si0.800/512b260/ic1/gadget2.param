@@ -1,12 +1,12 @@
-InitCondFile			/scratch3/scratchdirs/apetri/LSST100Parameters/Om0.260_Ol0.740_w-1.000_si0.800/512b260/ic1/ics/ics
-OutputDir			/scratch3/scratchdirs/apetri/LSST100Parameters/Om0.260_Ol0.740_w-1.000_si0.800/512b260/ic1/snapshots/
+InitCondFile			/TestRun/models/Om0.260_Ol0.740_w-1.000_si0.800/512b260/ic1/ics/ics
+OutputDir			/TestRun/models/Om0.260_Ol0.740_w-1.000_si0.800/512b260/ic1/snapshots/
 EnergyFile			energy.txt
 InfoFile			info.txt
 TimingsFile			timings.txt
 CpuFile			cpu.txt
 RestartFile			restart
 SnapshotFileBase			snapshot
-OutputListFilename			/global/homes/a/apetri/LSST100Parameters/models/Om0.260_Ol0.740_w-1.000_si0.800/512b260/ic1/outputs.txt
+OutputListFilename			/TestRun/models/Om0.260_Ol0.740_w-1.000_si0.800/512b260/ic1/outputs.txt
 
 % cpu_timings
 
@@ -45,8 +45,8 @@ TimeBetSnapshot		0.5
 TimeOfFirstSnapshot		0
 CpuTimeBetRestartFile		45000.0
 TimeBetStatistics		0.05
-NumFilesPerSnapshot		24
-NumFilesWrittenInParallel		8
+NumFilesPerSnapshot		16
+NumFilesWrittenInParallel		4
 
 
 % accuracy_time_integration
