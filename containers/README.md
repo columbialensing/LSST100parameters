@@ -1,7 +1,9 @@
 Docker containers for the test run
 ==================================
 
-These containers should be run in [the docker image that we provided](https://hub.docker.com/r/apetri/lenstools-ubuntu/).   
+These containers should be run in [the docker image that we provided](https://hub.docker.com/r/apetri/lenstools-ubuntu/). To inspect the image you can run 
+
+    docker run -ti --rm apetri/lenstools-ubuntu /sbin/my_init -- bash -l
 
 0. Generation of the initial conditions
 ---------------------------------------
