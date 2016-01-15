@@ -9,7 +9,7 @@ from itertools import product
 from lenstools.catalog import ShearCatalog
 from lenstools.statistics.ensemble import Ensemble
 from lenstools.statistics.database import Database
-from lenstools.pipeline import SimulationBatch
+from lenstools.pipeline.simulation import SimulationBatch
 
 import numpy as np
 import astropy.units as u
