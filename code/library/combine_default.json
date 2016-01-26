@@ -1,0 +1,14 @@
+{
+	"dbname" : "constraints.sqlite" ,
+	"table_name" : "fisher_matrix" ,
+	"feature_label" : "power_only" ,
+
+	"features" : ["power_spectrum","moments"] , 
+	
+	"power_spectrum" : {"feature_filter":"None","redshift_filter":"None","realization_filter":"realization>8"} ,
+	"moments" : {"feature_filter":"sigma0,S1,K2","redshift_filter":"b1>3","realization_filter":"realization<10"} ,
+	
+	"realizations_for_covariance" : 16000,
+	"realizations_for_data" : 1600,
+	"pca_components" : [10,20]
+}
