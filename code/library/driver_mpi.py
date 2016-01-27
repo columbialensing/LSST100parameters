@@ -124,11 +124,17 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	emulator = Ensemble.merge(models,emulator,on=["model"])
 
 	#Cast the emulator into an Emulator instance
-	p = emulator[["Om","w","sigma8"]]
-	for c in ["Om","w","sigma8","model"]:
-		emulator.pop(c)
+	pnames = filter(lambda n:n!="model",models.columns)
+	parameters = emulator[pnames]
+	parameters.add_name("parameters")
 	
-	emulator = Emulator.from_features(emulator,parameters=p)
+	for column in pnames+["model"]:
+		emulator.pop(column)
+	
+	emulator.add_name("features")
+	emulator = Emulator.from_features(emulator,parameters)
+
+	#TODO
 	emulator.save("emulator.pkl")
 
 	###################
@@ -138,6 +144,12 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	#############
 	#Constraints#
 	#############
+
+	#Train the emulator with a multiquadric kernel
+
+	#Approximate the emulator linearly around the fiducial parameters to get a FisherAnalysis instance
+
+	#Compute the Fisher matrix correcting for the inverse covariance bias
 
 
 

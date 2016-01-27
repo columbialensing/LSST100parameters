@@ -1,13 +1,15 @@
 #Default settings for feature analysis (typically not to be touched)
 
+import numpy as np
+
 #Settings for Fisher matrix
 class FisherSettings(object):
 
-	#Cosmological parameters and available features
-	features = ["power_spectrum","moments","peaks"]
-
 	#Constructor
 	def __init__(self):
+
+		#Cosmological parameters and available features
+		features = ["power_spectrum","moments","peaks"]
 		
 		#Power spectrum
 		self.power_spectrum = FeatureSettings("cross_spectra.sqlite","means","features_fiducial","features_fiducial_EmuIC","models")
