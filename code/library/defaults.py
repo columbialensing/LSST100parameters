@@ -9,9 +9,9 @@ class FisherSettings(object):
 	def __init__(self):
 
 		#Cosmological parameters and available features
-		features = ["power_spectrum","moments","peaks"]
-		fiducial_parameters = np.array([0.26,-1.,0.8])
-		derivative_precision = 0.01
+		self.features = ["power_spectrum","moments","peaks"]
+		self.fiducial_parameters = np.array([0.26,-1.,0.8])
+		self.derivative_precision = 0.01
 		
 		#Power spectrum
 		self.power_spectrum = FeatureSettings("cross_spectra.sqlite","means","features_fiducial","features_fiducial_EmuIC","models")
