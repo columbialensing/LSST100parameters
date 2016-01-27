@@ -176,7 +176,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	print("[+] Saving constraints to {0}, table '{1}'".format(outdbname,specs["table_name"]))
 
 	#Format the row to insert
-	row = pd.Series(parameter_covariance.values.flatten,index=pcov_columns)
+	row = pd.Series(parameter_covariance.values.flatten(),index=pcov_columns)
 	row["bins"] = covariance.shape[1]
 	row["feature_label"] = specs["feature_label_root"]
 
