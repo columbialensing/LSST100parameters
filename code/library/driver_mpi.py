@@ -1,7 +1,9 @@
 import os
 import argparse
+import itertools
 
 import numpy as np
+import pandas as pd
 
 from lenstools.utils.decorators import Parallelize
 from lenstools.statistics.ensemble import Ensemble
@@ -160,8 +162,25 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	feature_covariance = covariance.head(specs[realizations_for_covariance]).cov()
 	parameter_covariance = fisher.parameter_covariance(feature_covariance,correct=specs[realizations_for_covariance])
 
-	#TODO: Save for testing
-	parameter_covariance.save("pcov.pkl")
+	################################
+	#Output to constraints database#
+	################################
+
+	#Column names
+	pcov_columns = ["{0}-{1}".format(i,j) for i,j in itertools.product(pnames,pnames)]
+
+	#Constraints database
+	outdbname = os.path.join(batch.home,"data",specs["dbname"])
+	print("[+] Saving constraints to {0}, table '{1}'".format(outdbname,specs["table_name"]))
+
+	#Format the row to insert
+	row = pd.Series(parameter_covariance.values.flatten,index=pcov_columns)
+	row["bins"] = covariance.shape[1]
+	row["feature_label"] = specs["feature_label_root"]
+
+	#Insert the row
+	with FeatureDatabase(outdbname) as db:
+		db.insert(pd.DataFrame(row).T,specs["table_name"])
 
 
 
