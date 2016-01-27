@@ -84,7 +84,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			l,query_results = query_results.suppress_indices(by=["model"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
 			
 			#Emulators are merged on model
-			print("[+] Merging to master database...")
+			print("[+] Merging to master emulator database...")
 			emulator = Ensemble.merge(emulator,query_results,on=["model"],how="outer")
 
 			########################
@@ -101,7 +101,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
 			
 			#Covariances are merged on realization
-			print("[+] Merging to master database...")
+			print("[+] Merging to master covariance database...")
 			covariance = Ensemble.merge(covariance,query_results,on=["realization"],how="outer")
 
 			##################
@@ -118,7 +118,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
 			
 			#Data is merged on realization
-			print("[+] Merging to master database...")
+			print("[+] Merging to master data database...")
 			data = Ensemble.merge(data,query_results,on=["realization"],how="outer")
 
 	print("")
