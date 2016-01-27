@@ -73,13 +73,15 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			print("[+] Reading emulator from table {0}".format(getattr(settings,feature).emulator_table))
 			sql_query = getattr(settings,feature).emulator_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"])
 			print("[+] SQL: {0}".format(sql_query))
-			models = db.read_table(getattr(settings,feature).models_table)
+			models = db.read_table(getattr(settings,feature).model_table)
 			query_results = db.query(sql_query)
 			
 			#Suppress redshift indices
+			print("[+] Suppressing redshift indices...")
 			l,query_results = query_results.suppress_indices(by=["model"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
 			
 			#Emulators are merged on model
+			print("[+] Merging to master database...")
 			emulator = Ensemble.merge(emulator,query_results,on=["model"],how="outer")
 
 			########################
@@ -92,9 +94,11 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			query_results = db.query(sql_query)
 
 			#Suppress redshift indices
+			print("[+] Suppressing redshift indices...")
 			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
 			
 			#Covariances are merged on realization
+			print("[+] Merging to master database...")
 			covariance = Ensemble.merge(covariance,query_results,on=["realization"],how="outer")
 
 			##################
@@ -107,12 +111,15 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			query_results = db.query(sql_query)
 
 			#Suppress redshift indices
+			print("[+] Suppressing redshift indices...")
 			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
 			
 			#Data is merged on realization
+			print("[+] Merging to master database...")
 			data = Ensemble.merge(data,query_results,on=["realization"],how="outer")
 
 	#Attach the models to the emulator
+	print("[+] Attaching cosmological parameter values...")
 	emulator = Ensemble.merge(models,emulator,on=["model"])
 
 	######################
