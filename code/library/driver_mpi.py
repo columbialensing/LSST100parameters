@@ -121,6 +121,8 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			print("[+] Merging to master database...")
 			data = Ensemble.merge(data,query_results,on=["realization"],how="outer")
 
+	print("")
+
 	#Attach the models to the emulator
 	print("[+] Attaching cosmological parameter values...")
 	emulator = Ensemble.merge(models,emulator,on=["model"])
@@ -156,7 +158,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	print("[+] Projecting covariance ensemble on principal components...")
 	covariance = pca.transform(covariance)
 
-	print("[+] Date ensemble on principal components...")
+	print("[+] Projecting data ensemble on principal components...")
 	data = pca.transform(data)
 
 	#add names to data and covariance to match labels
@@ -177,6 +179,8 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	with FeatureDatabase(outdbname) as db:
 
 		for nc in specs["pca_components"]:
+
+			print("")
 
 			#Build feature label that enters in database
 			feature_label = specs["feature_label_format"].format(specs["feature_label_root"],nc,specs["realizations_for_covariance"],specs["realizations_for_data"])
