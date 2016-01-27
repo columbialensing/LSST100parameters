@@ -6,6 +6,7 @@ import numpy as np
 from lenstools.utils.decorators import Parallelize
 from lenstools.statistics.ensemble import Ensemble
 from lenstools.statistics.constraints import Emulator
+from lenstools.statistics.samplers import multiquadric
 
 from featureDB import FeatureDatabase
 from defaults import settings as default_settings
@@ -122,13 +123,21 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	print("[+] Attaching cosmological parameter values...")
 	emulator = Ensemble.merge(models,emulator,on=["model"])
 
-	######################
-	##Calculations begin##
-	######################
-
+	#Cast the emulator into an Emulator instance
+	p = emulator[["Om","w","sigma8"]]
+	for c in ["Om","w","sigma8","model"]:
+		emulator.pop(c)
+	
+	emulator = Emulator.from_features(emulator,parameters=p)
 	emulator.save("emulator.pkl")
-	covariance.save("covariance.pkl")
-	data.save("data.pkl")
+
+	###################
+	##PCA projections##
+	###################
+
+	#############
+	#Constraints#
+	#############
 
 
 
