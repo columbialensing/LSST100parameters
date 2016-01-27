@@ -52,10 +52,9 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	####################################################################################################################
 
 	#Placeholders for emulator, data and covariance
-	emulator = list()
-	models = list()
-	covariance = list()
-	data = list()
+	emulator = Ensemble(columns=["model"])
+	covariance = Ensemble(columns=["realization"])
+	data = Ensemble(columns=["realization"])
 
 	#First read in which kind of features are we combining
 	for feature in specs["features"]:
@@ -67,42 +66,62 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 
 		with FeatureDatabase(feature_dbfile) as db:
 
-			#Read in the emulator
+			######################
+			#Read in the emulator#
+			######################
+
 			print("[+] Reading emulator from table {0}".format(getattr(settings,feature).emulator_table))
 			sql_query = getattr(settings,feature).emulator_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"])
 			print("[+] SQL: {0}".format(sql_query))
-			#emulator.append(db.query(sql_query))
-			#models.append(db.read_table(getattr(settings,feature).models_table)) 
+			models = db.read_table(getattr(settings,feature).models_table)
+			query_results = db.query(sql_query)
+			
+			#Suppress redshift indices
+			l,query_results = query_results.suppress_indices(by=["model"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
+			
+			#Emulators are merged on model
+			emulator = Ensemble.merge(emulator,query_results,on=["model"],how="outer")
 
-			#Read in the covariance
+			########################
+			#Read in the covariance#
+			########################
+
 			print("[+] Reading covariance from table {0}".format(getattr(settings,feature).covariance_table))
 			sql_query = getattr(settings,feature).covariance_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"],realization_filter=specs[feature]["realization_filter"])
 			print("[+] SQL: {0}".format(sql_query))
-			#covariance.append(db.query(sql_query))
+			query_results = db.query(sql_query)
 
-			#Read in the data
+			#Suppress redshift indices
+			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
+			
+			#Covariances are merged on realization
+			covariance = Ensemble.merge(covariance,query_results,on=["realization"],how="outer")
+
+			##################
+			#Read in the data#
+			##################
+
 			print("[+] Reading data to fit from table {0}".format(getattr(settings,feature).data_table))
 			sql_query = getattr(settings,feature).data_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"],realization_filter=specs[feature]["realization_filter"])
 			print("[+] SQL: {0}".format(sql_query))
-			#data.append(db.query(sql_query))
+			query_results = db.query(sql_query)
 
-	############################################
-	##We need to suppress the redshift indices##
-	############################################
+			#Suppress redshift indices
+			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
+			
+			#Data is merged on realization
+			data = Ensemble.merge(data,query_results,on=["realization"],how="outer")
 
-	#####################################################################
-	##If there is more than one feature, we need to merge the databases##
-	#####################################################################
-
-	#Emulator is merged on model
-
-	#We need to attach the cosmological parameter values on the emulator 
-
-	#Data and covariance are merged on realization 
+	#Attach the models to the emulator
+	emulator = Ensemble.merge(models,emulator,on=["model"])
 
 	######################
 	##Calculations begin##
 	######################
+
+	emulator.save("emulator.pkl")
+	covariance.save("covariance.pkl")
+	data.save("data.pkl")
 
 
 

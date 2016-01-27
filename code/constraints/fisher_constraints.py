@@ -3,18 +3,27 @@
 import sys
 sys.modules["mpi4py"] = None
 
-import json
+import argparse,json
 
 from lenstools import SimulationBatch
 from library.driver_mpi import cosmo_constraints
 
+#Command line options
+parser = argparse.ArgumentParser()
+parser.add_argument("-e","--environment",dest="environment",action="store",default="environment.ini",help="INI file with the batch location")
+parser.add_argument("-f","--features",dest="features",action="store",default="combine_default.json",help="JSON file containing the specifications of the features to combine")
+
+#Main
 def main():
 
+	#Parse arguments
+	cmd_args = parser.parse_args()
+
 	#Init batch
-	batch = SimulationBatch.current()
+	batch = SimulationBatch.current(cmd_args.environment)
 
 	#Read json specs and sanitize input
-	with open("combine_default.json","r") as fp:
+	with open(cmd_args.features,"r") as fp:
 		specs = json.load(fp)
 
 	for feature in specs["features"]:
