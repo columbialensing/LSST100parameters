@@ -336,6 +336,41 @@ class FeatureDatabase(Database):
 				#Insert in the Database
 				db.insert(mode_directions,table_name)
 
+################################
+#####FisherDatabase class#######
+################################
+
+class FisherDatabase(Database):
+
+	#Retrieve the parameter covariance matrix from a row in the database
+	def query_parameter_covariance(self,feature_label,nbins=None,table_name="pcov",parameters=["Om","w","sigma8"]):
+
+		"""
+		Retrieve the parameter covariance matrix from a row in the database
+		
+		"""
+
+		#Columns that contain the parameter cross covariances
+		pcolumns = ['"{0}-{1}"'.format(i,j) for i,j in product(parameters,parameters)]
+
+		#Build the SQL query
+		sql_query = "SELECT {0} ".format(",".join(pcolumns))
+		sql_query += "FROM {0} ".format(table_name)
+		sql_query += "WHERE feature_label='{0}' ".format(feature_label)
+		if nbins is not None:
+			sql_query += "AND bins={0}".format(nbins)
+
+		#Perform the query on the database: it should return only one row
+		query_row = self.query(sql_query)
+		if len(query_row)==0:
+			raise ValueError("No record in the database found with these filters!")
+
+		if len(query_row)>1:
+			raise ValueError("Multiple records in the database! Something is wrong!")
+
+		#Cast the row into a matrix
+		pcov = query_row.values.reshape((len(parameters),)*2)
+		return self._constructor_ensemble(pcov,index=parameters,columns=parameters)
 
 #####################
 #LSSTSimulationBatch#
