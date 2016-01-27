@@ -134,22 +134,34 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	emulator.add_name("features")
 	emulator = Emulator.from_features(emulator,parameters)
 
-	#TODO
-	emulator.save("emulator.pkl")
-
 	###################
 	##PCA projections##
 	###################
+
+	#Pop 'realization' columns that are not needed anymore, add names to data and covariance to match labels
+	for df in [data,covariance]:
+		df.pop("realization")
+		df.add_name("features")
 
 	#############
 	#Constraints#
 	#############
 
 	#Train the emulator with a multiquadric kernel
+	print("[+] Training emulator with multiquadric kernel...")
+	emulator.train(method=multiquadric)
 
 	#Approximate the emulator linearly around the fiducial parameters to get a FisherAnalysis instance
+	print("[+] Approximating the emulator linearly around ({0})=({1}), derivative precision={2:.2f}...".format(",".join(pnames),",".join(["{0:.2f}".format(p) for p in settings.fiducial_parameters]),settings.derivative_precision))
+	fisher = emulator.approximate_linear(settings.fiducial_parameters,settings.derivative_precision)
 
-	#Compute the Fisher matrix correcting for the inverse covariance bias
+	#Compute the parameter covariance matrix correcting for the inverse covariance bias
+	print("[+] Computing {0}x{0} parameter covariance matrix, Nbins={1}...".format(len(pnames),covariance.shape[1]))
+	feature_covariance = covariance.head(specs[realizations_for_covariance]).cov()
+	parameter_covariance = fisher.parameter_covariance(feature_covariance,correct=specs[realizations_for_covariance])
+
+	#TODO: Save for testing
+	parameter_covariance.save("pcov.pkl")
 
 
 

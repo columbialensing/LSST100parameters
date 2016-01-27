@@ -1,7 +1,8 @@
 {
 	"dbname" : "constraints.sqlite" ,
 	"table_name" : "fisher_matrix" ,
-	"feature_label" : "power_only" ,
+	"feature_label_root" : "power_only" ,
+	"feature_label_format" : "{0}" ,
 
 	"features" : ["power_spectrum","moments"] , 
 	
