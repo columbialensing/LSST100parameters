@@ -5,6 +5,7 @@ import itertools
 import numpy as np
 import pandas as pd
 
+from lenstools.simulations.logs import logdriver
 from lenstools.utils.decorators import Parallelize
 from lenstools.statistics.ensemble import Ensemble
 from lenstools.statistics.constraints import Emulator
@@ -37,10 +38,10 @@ def measure(batch,cosmo_id,catalog_names,model_n,db_name,table_names,measurer,po
 		for nc,catalog_name in enumerate(catalog_names):
 
 			#Log to user
-			print("[+] Populating table '{0}' of database {1}...".format(table_names[nc],db_full_name))
+			logdriver.info("Populating table '{0}' of database {1}...".format(table_names[nc],db_full_name))
 
 			for s,sc in enumerate(model.getCollection("512b260").getCatalog(catalog_name).subcatalogs):
-				print("[+] Processing model {0}, catalog {1}, sub-catalog {2}...".format(model_n,catalog_name,s+1))
+				logdriver.info("Processing model {0}, catalog {1}, sub-catalog {2}...".format(model_n,catalog_name,s+1))
 				db.add_features(table_names[nc],sc,measurer=measurer,extra_columns={"model":model_n,"sub_catalog":s+1},pool=pool,**kwargs)
 
 
@@ -65,7 +66,7 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 		#Query the database
 		feature_dbfile = os.path.join(batch.storage,getattr(settings,feature).dbname)
 		print("")
-		print("[+] Reading {0} from {1}".format(feature,feature_dbfile))
+		logdriver.info("Reading {0} from {1}".format(feature,feature_dbfile))
 
 		with FeatureDatabase(feature_dbfile) as db:
 
@@ -73,58 +74,58 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 			#Read in the emulator#
 			######################
 
-			print("[+] Reading emulator from table {0}".format(getattr(settings,feature).emulator_table))
+			logdriver.info("Reading emulator from table {0}".format(getattr(settings,feature).emulator_table))
 			sql_query = getattr(settings,feature).emulator_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"])
-			print("[*] SQL: {0}".format(sql_query))
+			logdriver.info("SQL: {0}".format(sql_query))
 			models = db.read_table(getattr(settings,feature).model_table)
 			query_results = db.query(sql_query)
 			
 			#Suppress redshift indices
-			print("[+] Suppressing redshift indices...")
+			logdriver.info("Suppressing redshift indices...")
 			l,query_results = query_results.suppress_indices(by=["model"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
 			
 			#Emulators are merged on model
-			print("[+] Merging to master emulator database...")
+			logdriver.info("Merging to master emulator database...")
 			emulator = Ensemble.merge(emulator,query_results,on=["model"],how="outer")
 
 			########################
 			#Read in the covariance#
 			########################
 
-			print("[+] Reading covariance from table {0}".format(getattr(settings,feature).covariance_table))
+			logdriver.info("Reading covariance from table {0}".format(getattr(settings,feature).covariance_table))
 			sql_query = getattr(settings,feature).covariance_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"],realization_filter=specs[feature]["realization_filter"])
-			print("[*] SQL: {0}".format(sql_query))
+			logdriver.info("SQL: {0}".format(sql_query))
 			query_results = db.query(sql_query)
 
 			#Suppress redshift indices
-			print("[+] Suppressing redshift indices...")
+			logdriver.info("Suppressing redshift indices...")
 			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
 			
 			#Covariances are merged on realization
-			print("[+] Merging to master covariance database...")
+			logdriver.info("Merging to master covariance database...")
 			covariance = Ensemble.merge(covariance,query_results,on=["realization"],how="outer")
 
 			##################
 			#Read in the data#
 			##################
 
-			print("[+] Reading data to fit from table {0}".format(getattr(settings,feature).data_table))
+			logdriver.info("Reading data to fit from table {0}".format(getattr(settings,feature).data_table))
 			sql_query = getattr(settings,feature).data_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"],realization_filter=specs[feature]["realization_filter"])
-			print("[*] SQL: {0}".format(sql_query))
+			logdriver.info("SQL: {0}".format(sql_query))
 			query_results = db.query(sql_query)
 
 			#Suppress redshift indices
-			print("[+] Suppressing redshift indices...")
+			logdriver.info("Suppressing redshift indices...")
 			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
 			
 			#Data is merged on realization
-			print("[+] Merging to master data database...")
+			logdriver.info("Merging to master data database...")
 			data = Ensemble.merge(data,query_results,on=["realization"],how="outer")
 
 	print("")
 
 	#Attach the models to the emulator
-	print("[+] Attaching cosmological parameter values...")
+	logdriver.info("Attaching cosmological parameter values...")
 	emulator = Ensemble.merge(models,emulator,on=["model"])
 
 	#Cast the emulator into an Emulator instance
@@ -150,20 +151,20 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 	if "pca_components" in specs:
 
 		#Log the initial size of the feature vector
-		print("[*] Initial size of the feature vector: {0}".format(covariance.shape[1]))
+		logdriver.info("Initial size of the feature vector: {0}".format(covariance.shape[1]))
 
 		#Use the emulator to figure out the PCA components
-		print("[+] Computing principal components...")
+		logdriver.info("Computing principal components...")
 		pca = emulator[["features"]].principalComponents(scale=emulator[["features"]].mean())
 
 		#Transform the emulator,data and covariance with a PCA projection
-		print("[+] Projecting emulator on principal components...")
+		logdriver.info("Projecting emulator on principal components...")
 		emulator = emulator.refeaturize(pca.transform,method="apply_whole")
 
-		print("[+] Projecting covariance ensemble on principal components...")
+		logdriver.info("Projecting covariance ensemble on principal components...")
 		covariance = pca.transform(covariance)
 
-		print("[+] Projecting data ensemble on principal components...")
+		logdriver.info("Projecting data ensemble on principal components...")
 		data = pca.transform(data)
 
 		#Add names to data and covariance to match labels
@@ -179,7 +180,7 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 
 	#Constraints database
 	outdbname = os.path.join(batch.home,"data",specs["dbname"])
-	print("[+] Saving constraints to {0}, table '{1}'".format(outdbname,specs["table_name"]))
+	logdriver.info("Saving constraints to {0}, table '{1}'".format(outdbname,specs["table_name"]))
 
 	#Number of PCA components to process
 	if "pca_components" in specs:
@@ -199,7 +200,7 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 			#Process different numbers of PCA components
 			if nc is not None:
 				
-				print("[+] Processing {0} PCA components; feature label '{1}'".format(nc,feature_label))
+				logdriver.info("Processing {0} PCA components; feature label '{1}'".format(nc,feature_label))
 
 				#Build names of column subset
 				columns_nc = [("features",n) for n in range(nc)]
@@ -213,28 +214,28 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 			else:
 
 				#If PCA is switched off, there is nothing to do
-				print("[+] Processing whole feature vector without PCA")
+				logdriver.info("Processing whole feature vector without PCA")
 				emulator_pca = emulator
 				covariance_pca = covariance
 				data_pca = data
 
 			#If verbosity is on, log the full feature vector to the user
 			if verbose:
-				print("[*] Feature vector is: {0}".format(",".join([str(c[-1]) for c in covariance_pca.columns])))
+				logdriver.debug("Feature vector is: {0}".format(",".join([str(c[-1]) for c in covariance_pca.columns])))
 
 			#Train the emulator with a multiquadric kernel
-			print("[+] Training emulator with multiquadric kernel...")
+			logdriver.info("Training emulator with multiquadric kernel...")
 			emulator_pca.train(method=multiquadric)
 
 			#Approximate the emulator linearly around the fiducial parameters to get a FisherAnalysis instance
-			print("[+] Approximating the emulator linearly around ({0})=({1}), derivative precision={2:.2f}...".format(",".join(pnames),",".join(["{0:.2f}".format(p) for p in settings.fiducial_parameters]),settings.derivative_precision))
+			logdriver.info("Approximating the emulator linearly around ({0})=({1}), derivative precision={2:.2f}...".format(",".join(pnames),",".join(["{0:.2f}".format(p) for p in settings.fiducial_parameters]),settings.derivative_precision))
 			fisher = emulator_pca.approximate_linear(settings.fiducial_parameters,settings.derivative_precision)
 
 			#Compute the parameter covariance matrix correcting for the inverse covariance bias
-			print("[+] Computing the {0}x{0} feature covariance matrix, Nreal={1}, NLSST={2}...".format(covariance_pca.shape[1],specs["realizations_for_covariance"],settings.covariance_to_lsst))
+			logdriver.info("Computing the {0}x{0} feature covariance matrix, Nreal={1}, NLSST={2}...".format(covariance_pca.shape[1],specs["realizations_for_covariance"],settings.covariance_to_lsst))
 			feature_covariance = covariance_pca.head(specs["realizations_for_covariance"]).cov() / settings.covariance_to_lsst
 
-			print("[+] Computing {0}x{0} parameter covariance matrix, Nbins={1}...".format(len(pnames),covariance_pca.shape[1]))
+			logdriver.info("Computing {0}x{0} parameter covariance matrix, Nbins={1}...".format(len(pnames),covariance_pca.shape[1]))
 			parameter_covariance = fisher.parameter_covariance(feature_covariance,correct=specs["realizations_for_covariance"])
 
 			################################

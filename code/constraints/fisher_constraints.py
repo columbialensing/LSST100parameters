@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import sys,logging
 sys.modules["mpi4py"] = None
 
 import argparse,json
@@ -20,6 +20,12 @@ def main():
 
 	#Parse arguments
 	cmd_args = parser.parse_args()
+
+	#Verbosity level
+	if cmd_args.verbose:
+		logging.basicConfig(level=logging.DEBUG)
+	else:
+		logging.basicConfig(level=logging.INFO)
 
 	#Init batch
 	batch = LSSTSimulationBatch.current(cmd_args.environment)
