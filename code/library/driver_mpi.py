@@ -49,7 +49,7 @@ def measure(batch,cosmo_id,catalog_names,model_n,db_name,table_names,measurer,po
 #######Cosmological constraints driver##########
 ################################################
 
-def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
+def cosmo_constraints(batch,specs,settings=default_settings):
 
 	####################################################################################################################
 	##Specs should be a dictionary with all the information needed to combine the features and compute the constraints##
@@ -266,8 +266,7 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 				data_pca = data
 
 			#If verbosity is on, log the full feature vector to the user
-			if verbose:
-				logdriver.debug("Feature vector is: {0}".format(",".join([str(c[-1]) for c in covariance_pca.columns])))
+			logdriver.debug("Feature vector is: {0}".format(",".join([str(c[-1]) for c in covariance_pca.columns])))
 
 			#Train the emulator with a multiquadric kernel
 			logdriver.info("Training emulator with multiquadric kernel...")

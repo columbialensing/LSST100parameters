@@ -47,7 +47,7 @@ def main():
 					s[feature][l] = None
 		
 		#Execute
-		cosmo_constraints(batch,s,settings,cmd_args.verbose)
+		cosmo_constraints(batch,s,settings)
 
 
 if __name__=="__main__":
