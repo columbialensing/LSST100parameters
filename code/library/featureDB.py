@@ -347,6 +347,21 @@ class FisherDatabase(Database):
 
 		"""
 		Retrieve the parameter covariance matrix from a row in the database
+
+		:param feature_label: name of the feature to retrieve
+		:type feature_label: str.
+
+		:param nbins: number of bins
+		:type nbins: int.
+
+		:param table_name: name of the table to query
+		:type table_name: str.
+
+		:param parameters: parameter list 
+		:type parameters: list.
+
+		:returns: parameter covariance matrix
+		:rtype: Ensemble
 		
 		"""
 
@@ -371,6 +386,37 @@ class FisherDatabase(Database):
 		#Cast the row into a matrix
 		pcov = query_row.values.reshape((len(parameters),)*2)
 		return self._constructor_ensemble(pcov,index=parameters,columns=parameters)
+
+	
+
+	#Retrieve the variance of a single parameter for a single feature_label
+	def query_parameter_simple(self,feature_label,table_name="pcov",parameter="w"):
+
+		"""
+		Retrieve the variance of a single parameter for a single feature_label
+
+		:param feature_label: name of the feature to retrieve
+		:type feature_label: str.
+
+		:param table_name: name of the table to query
+		:type table_name: str.
+
+		:param parameter: parameter to retrieve
+		:type parameter: str.
+
+		:returns: number of components, parameter variance
+		:rtype: tuple.
+
+		"""
+
+		#Build the SQL query and retrieve the results
+		sql_query = 'SELECT bins,"{0}" FROM {1} WHERE feature_label="{2}"'.format("-".join([parameter,parameter]),table_name,feature_label)
+		query_results = self.query(sql_query)
+
+		#Return the number of components and corresponding parameter variance
+		return query_results["bins"].values.astype(np.int),query_results["-".join([parameter,parameter])].values
+
+
 
 #####################
 #LSSTSimulationBatch#

@@ -12,6 +12,9 @@ class FisherSettings(object):
 		self.features = ["power_spectrum","moments","peaks"]
 		self.fiducial_parameters = np.array([0.26,-1.,0.8])
 		self.derivative_precision = 0.01
+
+		#Factor to scale the covariance to full LSST size
+		self.covariance_to_lsst = 1600.
 		
 		#Power spectrum
 		self.power_spectrum = FeatureSettings("cross_spectra.sqlite","means","features_fiducial","features_fiducial_EmuIC","models")

@@ -228,8 +228,8 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 			fisher = emulator_pca.approximate_linear(settings.fiducial_parameters,settings.derivative_precision)
 
 			#Compute the parameter covariance matrix correcting for the inverse covariance bias
-			print("[+] Computing the {0}x{0} feature covariance matrix, Nreal={1}...".format(covariance_pca.shape[1],specs["realizations_for_covariance"]))
-			feature_covariance = covariance_pca.head(specs["realizations_for_covariance"]).cov()
+			print("[+] Computing the {0}x{0} feature covariance matrix, Nreal={1}, NLSST={2}...".format(covariance_pca.shape[1],specs["realizations_for_covariance"],settings.covariance_to_lsst))
+			feature_covariance = covariance_pca.head(specs["realizations_for_covariance"]).cov() / settings.covariance_to_lsst
 
 			print("[+] Computing {0}x{0} parameter covariance matrix, Nbins={1}...".format(len(pnames),covariance_pca.shape[1]))
 			parameter_covariance = fisher.parameter_covariance(feature_covariance,correct=specs["realizations_for_covariance"])
