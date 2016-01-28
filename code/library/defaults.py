@@ -23,7 +23,7 @@ class FisherSettings(object):
 		
 		#Moments
 		self.moments = FeatureSettings("moments.sqlite","means","features_fiducial","features_fiducial_EmuIC","models")
-		self.moments.set_feature_labels(["sigma0","sigma1","S0","S1","S2","K0","K1","K2","k3"])
+		self.moments.set_feature_labels(["sigma0","sigma1","S0","S1","S2","K0","K1","K2","K3"])
 		self.moments.set_redshift_labels(["b1"])
 		
 		#Peaks
