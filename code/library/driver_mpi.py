@@ -75,7 +75,7 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 
 			print("[+] Reading emulator from table {0}".format(getattr(settings,feature).emulator_table))
 			sql_query = getattr(settings,feature).emulator_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"])
-			print("[+] SQL: {0}".format(sql_query))
+			print("[*] SQL: {0}".format(sql_query))
 			models = db.read_table(getattr(settings,feature).model_table)
 			query_results = db.query(sql_query)
 			
@@ -93,7 +93,7 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 
 			print("[+] Reading covariance from table {0}".format(getattr(settings,feature).covariance_table))
 			sql_query = getattr(settings,feature).covariance_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"],realization_filter=specs[feature]["realization_filter"])
-			print("[+] SQL: {0}".format(sql_query))
+			print("[*] SQL: {0}".format(sql_query))
 			query_results = db.query(sql_query)
 
 			#Suppress redshift indices
@@ -110,7 +110,7 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 
 			print("[+] Reading data to fit from table {0}".format(getattr(settings,feature).data_table))
 			sql_query = getattr(settings,feature).data_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"],realization_filter=specs[feature]["realization_filter"])
-			print("[+] SQL: {0}".format(sql_query))
+			print("[*] SQL: {0}".format(sql_query))
 			query_results = db.query(sql_query)
 
 			#Suppress redshift indices
@@ -148,6 +148,9 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 	###########################
 
 	if "pca_components" in specs:
+
+		#Log the initial size of the feature vector
+		print("[*] Initial size of the feature vector: {0}".format(covariance.shape[1]))
 
 		#Use the emulator to figure out the PCA components
 		print("[+] Computing principal components...")
@@ -217,7 +220,7 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 
 			#If verbosity is on, log the full feature vector to the user
 			if verbose:
-				print("[+] Feature vector is: {0}".format(",".join([str(c[-1]) for c in covariance_pca.columns])))
+				print("[*] Feature vector is: {0}".format(",".join([str(c[-1]) for c in covariance_pca.columns])))
 
 			#Train the emulator with a multiquadric kernel
 			print("[+] Training emulator with multiquadric kernel...")
