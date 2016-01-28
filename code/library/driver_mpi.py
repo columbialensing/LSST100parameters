@@ -138,32 +138,34 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	emulator.add_name("features")
 	emulator = Emulator.from_features(emulator,parameters)
 
-	###################
-	##PCA projections##
-	###################
-
 	#Pop 'realization' columns that are not needed anymore, add names to data and covariance to match labels
 	for df in [data,covariance]:
 		df.pop("realization")
 		df.add_name("features")
 
-	#Use the emulator to figure out the PCA components
-	print("[+] Computing principal components...")
-	pca = emulator[["features"]].principalComponents(scale=emulator[["features"]].mean())
+	###########################
+	##PCA projections (maybe)##
+	###########################
 
-	#Transform the emulator,data and covariance with a PCA projection
-	print("[+] Projecting emulator on principal components...")
-	emulator = emulator.refeaturize(pca.transform,method="apply_whole")
+	if "pca_components" in specs:
 
-	print("[+] Projecting covariance ensemble on principal components...")
-	covariance = pca.transform(covariance)
+		#Use the emulator to figure out the PCA components
+		print("[+] Computing principal components...")
+		pca = emulator[["features"]].principalComponents(scale=emulator[["features"]].mean())
 
-	print("[+] Projecting data ensemble on principal components...")
-	data = pca.transform(data)
+		#Transform the emulator,data and covariance with a PCA projection
+		print("[+] Projecting emulator on principal components...")
+		emulator = emulator.refeaturize(pca.transform,method="apply_whole")
 
-	#add names to data and covariance to match labels
-	for df in [data,covariance]:
-		df.add_name("features")
+		print("[+] Projecting covariance ensemble on principal components...")
+		covariance = pca.transform(covariance)
+
+		print("[+] Projecting data ensemble on principal components...")
+		data = pca.transform(data)
+
+		#Add names to data and covariance to match labels
+		for df in [data,covariance]:
+			df.add_name("features")
 
 	#############
 	#Constraints#
@@ -176,24 +178,42 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	outdbname = os.path.join(batch.home,"data",specs["dbname"])
 	print("[+] Saving constraints to {0}, table '{1}'".format(outdbname,specs["table_name"]))
 
+	#Number of PCA components to process
+	if "pca_components" in specs:
+		pca_components = specs["pca_components"]
+	else:
+		pca_components = [None]
+
 	with FeatureDatabase(outdbname) as db:
 
-		for nc in specs["pca_components"]:
+		for nc in pca_components:
 
 			print("")
 
 			#Build feature label that enters in database
 			feature_label = specs["feature_label_format"].format(specs["feature_label_root"],nc,specs["realizations_for_covariance"],specs["realizations_for_data"])
-			print("[+] Processing {0} PCA components; feature label '{1}'".format(nc,feature_label))
 
-			#Build names of column subset
-			columns_nc = [("features",n) for n in range(nc)]
-			emulator_nc = [("parameters",p) for p in pnames] + columns_nc
+			#Process different numbers of PCA components
+			if nc is not None:
+				
+				print("[+] Processing {0} PCA components; feature label '{1}'".format(nc,feature_label))
 
-			#Truncate emulator,covariance and data to the appropriate number of principal components
-			emulator_pca = emulator[emulator_nc].copy()
-			covariance_pca = covariance[columns_nc]
-			data_pca = data[columns_nc]
+				#Build names of column subset
+				columns_nc = [("features",n) for n in range(nc)]
+				emulator_nc = [("parameters",p) for p in pnames] + columns_nc
+
+				#Truncate emulator,covariance and data to the appropriate number of principal components
+				emulator_pca = emulator[emulator_nc].copy()
+				covariance_pca = covariance[columns_nc]
+				data_pca = data[columns_nc]
+			
+			else:
+
+				#If PCA is switched off, there is nothing to do
+				print("[+] Processing whole feature vector without PCA")
+				emulator_pca = emulator
+				covariance_pca = covariance
+				data_pca = data
 
 			#Train the emulator with a multiquadric kernel
 			print("[+] Training emulator with multiquadric kernel...")
