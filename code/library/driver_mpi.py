@@ -212,6 +212,11 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 		for df in [data,covariance]:
 			df.add_name("features")
 
+	else:
+		#Log the initial size of the feature vector
+		logdriver.info("Size of the feature vector: {0}".format(covariance.shape[1]))
+
+
 	#############
 	#Constraints#
 	#############
