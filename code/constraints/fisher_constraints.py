@@ -28,13 +28,20 @@ def main():
 	with open(cmd_args.features,"r") as fp:
 		specs = json.load(fp)
 
-	for feature in specs["features"]:
-		for l in ["feature_filter","redshift_filter","realization_filter"]:
-			if specs[feature][l]=="None":
-				specs[feature][l] = None
+	if type(specs)==dict:
+		specs = [specs]
+
+	#Cycle over specifications
+	for s in specs:
+
+		#Sanitize None
+		for feature in s["features"]:
+			for l in ["feature_filter","redshift_filter","realization_filter"]:
+				if s[feature][l]=="None":
+					s[feature][l] = None
 		
-	#Execute
-	cosmo_constraints(batch,specs,settings,cmd_args.verbose)
+		#Execute
+		cosmo_constraints(batch,s,settings,cmd_args.verbose)
 
 
 if __name__=="__main__":
