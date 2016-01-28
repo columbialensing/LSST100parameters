@@ -83,6 +83,25 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 			#Suppress redshift indices
 			logdriver.info("Suppressing redshift indices...")
 			l,query_results = query_results.suppress_indices(by=["model"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
+
+			#Optional: perform a preliminary PCA projection here
+			if "pca_components" in specs[feature]:
+				
+				nc = specs[feature]["pca_components"]
+				
+				#Compute principal components
+				logdriver.info("Computing principal components for feature '{0}'...".format(feature))
+				model_column = query_results.pop("model")
+				pca = query_results.principalComponents(scale=query_results.mean())
+
+				#Project emulator on principal components
+				logdriver.info("Projecting emulator and truncating to {0} PCA components...".format(nc))
+				query_results = Ensemble(pca.transform(query_results)[range(nc)],columns=["{0}_{1}".format(feature,n) for n in range(nc)])
+				query_results["model"] = model_column
+				logdriver.debug("New emulator columns: {0}".format(",".join(query_results.columns)))
+				
+			else:
+				nc = None
 			
 			#Emulators are merged on model
 			logdriver.info("Merging to master emulator database...")
@@ -100,6 +119,17 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 			#Suppress redshift indices
 			logdriver.info("Suppressing redshift indices...")
 			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
+
+			#Optional: perform a preliminary PCA projection here
+			if nc is not None:
+				
+				realization_column = query_results.pop("realization")
+
+				#Project covariance on principal components
+				logdriver.info("Projecting covariance and truncating to {0} PCA components...".format(nc))
+				query_results = Ensemble(pca.transform(query_results)[range(nc)],columns=["{0}_{1}".format(feature,n) for n in range(nc)])
+				query_results["realization"] = realization_column
+				logdriver.debug("New covariance columns: {0}".format(",".join(query_results.columns)))
 			
 			#Covariances are merged on realization
 			logdriver.info("Merging to master covariance database...")
@@ -117,6 +147,17 @@ def cosmo_constraints(batch,specs,settings=default_settings,verbose=False):
 			#Suppress redshift indices
 			logdriver.info("Suppressing redshift indices...")
 			l,query_results = query_results.suppress_indices(by=["realization"],suppress=getattr(settings,feature).redshift_labels,columns=getattr(settings,feature).feature_labels)
+
+			#Optional: perform a preliminary PCA projection here
+			if nc is not None:
+				
+				realization_column = query_results.pop("realization")
+
+				#Project covariance on principal components
+				logdriver.info("Projecting data and truncating to {0} PCA components...".format(nc))
+				query_results = Ensemble(pca.transform(query_results)[range(nc)],columns=["{0}_{1}".format(feature,n) for n in range(nc)])
+				query_results["realization"] = realization_column
+				logdriver.debug("New data columns: {0}".format(",".join(query_results.columns)))
 			
 			#Data is merged on realization
 			logdriver.info("Merging to master data database...")
