@@ -12,7 +12,7 @@ from library.defaults import settings
 #Command line options
 parser = argparse.ArgumentParser()
 parser.add_argument("-e","--environment",dest="environment",action="store",default="environment.ini",help="INI file with the batch location")
-parser.add_argument("-f","--features",dest="features",action="store",default="combine_default.json",help="JSON file containing the specifications of the features to combine")
+parser.add_argument("-f","--features",dest="features",action="store",default=None,help="JSON file containing the specifications of the features to combine, in None, these are read from stdin")
 parser.add_argument("-v","--verbose",dest="verbose",action="store_true",default=False,help="Turn on verbosity")
 
 #Main
@@ -31,8 +31,11 @@ def main():
 	batch = LSSTSimulationBatch.current(cmd_args.environment)
 
 	#Read json specs and sanitize input
-	with open(cmd_args.features,"r") as fp:
-		specs = json.load(fp)
+	if cmd_args.features is not None:
+		with open(cmd_args.features,"r") as fp:
+			specs = json.load(fp)
+	else:
+		specs = json.loads(sys.stdin.read())
 
 	if type(specs)==dict:
 		specs = [specs]
