@@ -15,6 +15,36 @@ parser.add_argument("-e","--environment",dest="environment",action="store",defau
 parser.add_argument("-f","--features",dest="features",action="store",default=None,help="JSON file containing the specifications of the features to combine, in None, these are read from stdin")
 parser.add_argument("-v","--verbose",dest="verbose",action="store_true",default=False,help="Turn on verbosity")
 
+#Create a list of single redshift features out of a tomographic one
+def split_redshifts(specs,redshift_index=range(5)):
+
+	#List of splittings
+	splitted_specs = list()
+
+	#Cycle over features and redshift bin
+	for zi in redshift_index:
+		
+		#Deep copy of the original dictionary
+		specs_redshift = dict()
+		for key in ["dbname","table_name","feature_label_root","feature_label_format","features","realizations_for_covariance","realizations_for_data","pca_components"]:
+			specs_redshift[key] = specs[key]
+
+		#Append redshift label to name
+		specs_redshift["feature_label_root"] += "_z{0}".format(zi)
+		
+		#Update features with redshift filter
+		for feature in specs["features"]:
+			specs_redshift[feature] = dict((("feature_filter",specs[feature]["feature_filter"]),("realization_filter",specs[feature]["realization_filter"])))
+			specs_redshift[feature]["redshift_filter"] = " AND ".join(["{0}={1}".format(l,zi) for l in getattr(settings,feature).redshift_labels])
+	
+		#Append to list
+		splitted_specs.append(specs_redshift)
+
+	#Return to user
+	return splitted_specs
+
+############################################################################################################################################################################
+
 #Main
 def main():
 
