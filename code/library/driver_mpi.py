@@ -19,7 +19,7 @@ from defaults import settings as default_settings
 ########################################
 
 @Parallelize.masterworker
-def measure(batch,cosmo_id,catalog_names,model_n,db_name,table_names,measurer,pool,**kwargs):
+def measure(batch,cosmo_id,catalog_names,model_n,add_shape_noise,db_name,table_names,measurer,pool,**kwargs):
 
 	if isinstance(catalog_names,str):
 		catalog_names = [catalog_names]
@@ -30,6 +30,9 @@ def measure(batch,cosmo_id,catalog_names,model_n,db_name,table_names,measurer,po
 	#Populate database
 	db_full_name = os.path.join(batch.environment.storage,db_name)
 	with FeatureDatabase(db_full_name) as db:
+
+		if add_shape_noise:
+			db.map_specs["add_shape_noise"] = True
 			
 		#Handle on the model 
 		model = batch.getModel(cosmo_id)

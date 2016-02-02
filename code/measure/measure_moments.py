@@ -47,6 +47,8 @@ if __name__=="__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-e","--environment",dest="environment",help="Environment options file")
 	parser.add_argument("-c","--config",dest="config",help="Configuration file")
+	parser.add_argument("-n","--noise",dest="noise",action="store_true",default=False,help="Add shape noise")
+	parser.add_argument("-d","--database",dest="database",default="moments",help="Database name to populate")
 	parser.add_argument("id",nargs="*")
 	cmd_args = parser.parse_args()
 
@@ -56,12 +58,18 @@ if __name__=="__main__":
 	#Redshift bin indices
 	indices = range(5) 
 
+	#Database name
+	database_name = cmd_args.database
+	if cmd_args.noise:
+		database_name += "_noise"
+	database_name += ".sqlite"
+
 	#Execute
 	for model_id in cmd_args.id:
 		
 		cosmo_id,n = model_id.split("|")
 		
 		if cosmo_id==batch.fiducial_cosmo_id:
-			driver.measure(batch,cosmo_id,["Shear","ShearEmuIC"],int(n),"moments.sqlite",["features_fiducial","features_fiducial_EmuIC"],measurer=moments,pool=None,indices=indices)
+			driver.measure(batch,cosmo_id,["Shear","ShearEmuIC"],int(n),cmd_args.noise,database_name,["features_fiducial","features_fiducial_EmuIC"],measurer=moments,pool=None,indices=indices)
 		else:
-			driver.measure(batch,cosmo_id,"Shear",int(n),"moments.sqlite","features",measurer=moments,pool=None,indices=indices)
+			driver.measure(batch,cosmo_id,"Shear",int(n),cmd_args.noise,database_name,"features",measurer=moments,pool=None,indices=indices)

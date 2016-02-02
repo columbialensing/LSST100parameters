@@ -3,7 +3,7 @@
 ############################################
 
 from __future__ import division,print_function,with_statement
-import sys,os
+import sys,os,re
 from itertools import product
 
 from lenstools.catalog import ShearCatalog
@@ -15,6 +15,7 @@ import numpy as np
 import astropy.units as u
 import astropy.table as tbl
 
+real = re.compile(r'([0-9]{4})r\.fits')
 
 #############################################
 #Measure features in a partcular realization#
@@ -44,7 +45,7 @@ def process_realization(realization,db_type,map_specs,sub_catalog,measurer,**kwa
 	shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,map_specs["nzbins"]+1) ]
 
 	#Construct the maps
-	maps = db_type.make_maps(shear_files,position_files,npixel=map_specs["npixel"],smooth=map_specs["smooth"],fov=map_specs["fov"],add_noise=map_specs["add_noise"])
+	maps = db_type.make_maps(shear_files,position_files,npixel=map_specs["npixel"],smooth=map_specs["smooth"],fov=map_specs["fov"],add_shape_noise=map_specs["add_shape_noise"])
 
 	#Measure the features
 	ensemble_realization = measurer(maps,**kwargs)
@@ -71,7 +72,7 @@ class FeatureDatabase(Database):
 	"npixel" : 512,
 	"smooth" : 0.5*u.arcmin,
 	"fov" : 3.5*u.deg,
-	"add_noise" : False
+	"add_shape_noise" : False
 	}
 
 	def __init__(self,name,**kwargs):
@@ -137,7 +138,7 @@ class FeatureDatabase(Database):
 	###############################################
 	
 	@staticmethod
-	def make_maps(shear_files,position_files,npixel=512,smooth=0.5*u.arcmin,fov=3.5*u.deg,add_noise=False):
+	def make_maps(shear_files,position_files,npixel=512,smooth=0.5*u.arcmin,fov=3.5*u.deg,add_shape_noise=False):
 
 		"""
 		:param shear_files: list of files that contain the shear catalogs
@@ -155,8 +156,28 @@ class FeatureDatabase(Database):
 
 		#Read in all the shear catalogs, and convert to convergence maps with E/B mode decomposition
 		convergence_maps = list()
+		
+		#Cycle over redshift bins
 		for n,shear_file in enumerate(shear_files):
+
 			full_catalog = tbl.hstack((ShearCatalog.read(position_files[n]),ShearCatalog.read(shear_file)))
+			
+			#Add shape noise
+			if add_shape_noise:
+				
+				#Set seed
+				try:
+					r = int(real.search(shear_file).groups()[0])
+					seed = r + 100000*n
+				except AttributeError:
+					seed = None
+
+				#Generate noise and add it to the catalog
+				shape_noise = full_catalog.shapeNoise(seed)
+				full_catalog["shear1"] += shape_noise["shear1"]
+				full_catalog["shear2"] += shape_noise["shear2"]
+
+			#Append to the redshift binned convergence map
 			convergence_maps.append(full_catalog.toMap(map_size=fov,npixel=npixel,smooth=smooth).convergence())
 
 		#Return

@@ -50,6 +50,8 @@ if __name__=="__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-e","--environment",dest="environment",help="Environment options file")
 	parser.add_argument("-c","--config",dest="config",help="Configuration file")
+	parser.add_argument("-n","--noise",dest="noise",action="store_true",default=False,help="Add shape noise")
+	parser.add_argument("-d","--database",dest="database",default="peaks",help="Database name to populate")
 	parser.add_argument("id",nargs="*")
 	cmd_args = parser.parse_args()
 
@@ -60,12 +62,19 @@ if __name__=="__main__":
 	indices = range(5)
 	kappa_edges = pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["kappa_edges_sigma"].values
 
+	#Database name
+	database_name = cmd_args.database
+	if cmd_args.noise:
+		database_name += "_noise"
+	database_name += ".sqlite"
+
 	#Execute
 	for model_id in cmd_args.id:
 		
 		cosmo_id,n = model_id.split("|")
 		
 		if cosmo_id==batch.fiducial_cosmo_id:
-			driver.measure(batch,cosmo_id,"Shear",int(n),"peaks.sqlite","features_fiducial",measurer=peaks,pool=None,kappa_edges=kappa_edges,indices=indices)
+			driver.measure(batch,cosmo_id,"Shear",int(n),cmd_args.noise,database_name,"features_fiducial",measurer=peaks,pool=None,kappa_edges=kappa_edges,indices=indices)
+			driver.measure(batch,cosmo_id,"ShearEmuIC",int(n),cmd_args.noise,database_name,"features_fiducial_EmuIC",measurer=peaks,pool=None,kappa_edges=kappa_edges,indices=indices)
 		else:
-			driver.measure(batch,cosmo_id,"Shear",int(n),"peaks.sqlite","features",measurer=peaks,pool=None,kappa_edges=kappa_edges,indices=indices)
+			driver.measure(batch,cosmo_id,"Shear",int(n),cmd_args.noise,database_name,"features",measurer=peaks,pool=None,kappa_edges=kappa_edges,indices=indices)

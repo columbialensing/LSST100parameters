@@ -53,6 +53,8 @@ if __name__=="__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-e","--environment",dest="environment",help="Environment options file")
 	parser.add_argument("-c","--config",dest="config",help="Configuration file")
+	parser.add_argument("-n","--noise",dest="noise",action="store_true",default=False,help="Add shape noise")
+	parser.add_argument("-d","--database",dest="database",default="cross_spectra",help="Database name to populate")
 	parser.add_argument("id",nargs="*")
 	cmd_args = parser.parse_args()
 
@@ -63,12 +65,19 @@ if __name__=="__main__":
 	indices = zip(*np.triu_indices(5))
 	ell_edges = pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["ell_edges"].values
 
+	#Database name
+	database_name = cmd_args.database
+	if cmd_args.noise:
+		database_name += "_noise"
+	database_name += ".sqlite"
+
 	#Execute
 	for model_id in cmd_args.id:
 		
 		cosmo_id,n = model_id.split("|")
 		
 		if cosmo_id==batch.fiducial_cosmo_id:
-			driver.measure(batch,cosmo_id,"Shear",int(n),"cross_spectra.sqlite","features_fiducial",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+			driver.measure(batch,cosmo_id,"Shear",int(n),cmd_args.noise,database_name,"features_fiducial",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+			driver.measure(batch,cosmo_id,"ShearEmuIC",int(n),cmd_args.noise,database_name,"features_fiducial_EmuIC",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
 		else:
-			driver.measure(batch,cosmo_id,"Shear",int(n),"cross_spectra.sqlite","features",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+			driver.measure(batch,cosmo_id,"Shear",int(n),cmd_args.noise,database_name,"features",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
