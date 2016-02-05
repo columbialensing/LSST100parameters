@@ -1,4 +1,4 @@
-#!/usr/bin/env python-mpi
+#!/usr/bin/env python
 
 import sys
 import json
@@ -6,7 +6,7 @@ import argparse
 
 sys.modules["mpi4py"] = None
 
-from lenstools.simulation.logs import logdriver
+from lenstools.simulations.logs import logdriver
 
 from library.featureDB import LSSTSimulationBatch,FeatureDatabase
 from library.defaults import settings
