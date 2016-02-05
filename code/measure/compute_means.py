@@ -55,7 +55,7 @@ def main():
 	for feature in cmd_args.features:
 
 		dbname = os.path.join(batch.storage,feature2database[feature])
-		logdriver.info("Computing means for database at {0}, redshift indices: {1}".format(dbname,",".join(getattr(settings,feature).redshift_label))) 
+		logdriver.info("Computing means for database at {0}, redshift indices: {1}".format(dbname,",".join(getattr(settings,feature).redshift_labels))) 
 
 		#Open the database
 		with FeatureDatabase(dbname) as db:
