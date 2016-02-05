@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import sys
+import sys,os
 import json
 import argparse
+import logging
 
 sys.modules["mpi4py"] = None
 
@@ -18,6 +19,8 @@ import pandas as pd
 ##################
 
 def main():
+
+	logging.basicConfig(level=logging.INFO)
 
 	#Parse command line arguments
 	parser = argparse.ArgumentParser()
@@ -52,7 +55,7 @@ def main():
 	for feature in cmd_args.features:
 
 		dbname = os.path.join(batch.storage,feature2database[feature])
-		logdriver.info("Computing means for database at {0}".format(dbname)) 
+		logdriver.info("Computing means for database at {0}, redshift indices: {1}".format(dbname,",".join(getattr(settings,feature).redshift_label))) 
 
 		#Open the database
 		with FeatureDatabase(dbname) as db:
@@ -64,16 +67,16 @@ def main():
 			for n,m in enumerate(models):
 				
 				#Query the database
-				logdriver.info("Processing model {0} ({1} of {2})".format(m,n,len(models)))
+				logdriver.info("Processing model {0} ({1} of {2})".format(m,n+1,len(models)))
 				sql_query = "SELECT * FROM features WHERE model={0}".format(m)
 				logdriver.info("SQL: {0}".format(sql_query))
 				realizations = db.query(sql_query)
 
 				#Compute the means by redshift
-				means = realizations.groupby(getattr(settings,feature).redshift_labels).mean(0).reset_index()
+				means = realizations.groupby(getattr(settings,feature).redshift_labels).mean().reset_index()
 
 				#Append model row as an entry into the "models" table
-				models_row = pd.Series(means[parameter_names].mean(),columns=parameter_names)
+				models_row = pd.Series(means[parameter_names].mean(),index=parameter_names)
 				models_row["model"] = m
 				db.insert(pd.DataFrame(models_row).T,"models") 
 
