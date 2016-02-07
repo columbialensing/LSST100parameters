@@ -1,5 +1,5 @@
 #!/usr/bin/env python-mpi
-import argparse
+import argparse,logging
 
 import library.driver_mpi as driver
 from library.featureDB import LSSTSimulationBatch
@@ -54,6 +54,8 @@ if __name__=="__main__":
 	parser.add_argument("-d","--database",dest="database",default="peaks",help="Database name to populate")
 	parser.add_argument("id",nargs="*")
 	cmd_args = parser.parse_args()
+
+	logging.basicConfig(level=logging.INFO)
 
 	#Handle on the current batch
 	batch = LSSTSimulationBatch(EnvironmentSettings.read(cmd_args.environment))
