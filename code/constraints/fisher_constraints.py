@@ -69,22 +69,23 @@ def main():
 	else:
 		specs = json.loads(sys.stdin.read())
 
+	#Shape noise yes/no
+	if cmd_args.noise:
+		for feature in settings.features:
+			getattr(settings,feature).dbname = getattr(settings,feature).dbname.replace(".sqlite","_noise.sqlite") 
+
 	if type(specs)==dict:
 		specs = [specs]
 
 	#Cycle over specifications
 	for s in specs:
 
-		#Sanitize None, shape noise yes/no
+		#Sanitize None
 		for feature in s["features"]:
 
 			for l in ["feature_filter","redshift_filter","realization_filter"]:
 				if s[feature][l]=="None":
 					s[feature][l] = None
-
-			if cmd_args.noise:
-				getattr(settings,feature).dbname = getattr(settings,feature).dbname.replace(".sqlite","_noise.sqlite") 
-		
 		
 		#Execute
 		cosmo_constraints(batch,s,settings)
