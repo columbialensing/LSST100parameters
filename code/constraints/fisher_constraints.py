@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys,logging
+import sys,logging,argparse
 sys.modules["mpi4py"] = None
 
 import argparse,json
@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-e","--environment",dest="environment",action="store",default="environment.ini",help="INI file with the batch location")
 parser.add_argument("-f","--features",dest="features",action="store",default=None,help="JSON file containing the specifications of the features to combine, in None, these are read from stdin")
 parser.add_argument("-v","--verbose",dest="verbose",action="store_true",default=False,help="Turn on verbosity")
+parser.add_argument("-n","--noisy",dest="noise",action="store_true",default=False,help="Process features with shape noise")
 
 #Create a list of single redshift features out of a tomographic one
 def split_redshifts(specs,redshift_index=range(5)):
@@ -57,6 +58,7 @@ def main():
 	else:
 		logging.basicConfig(level=logging.INFO)
 
+
 	#Init batch
 	batch = LSSTSimulationBatch.current(cmd_args.environment)
 
@@ -73,11 +75,16 @@ def main():
 	#Cycle over specifications
 	for s in specs:
 
-		#Sanitize None
+		#Sanitize None, shape noise yes/no
 		for feature in s["features"]:
+
 			for l in ["feature_filter","redshift_filter","realization_filter"]:
 				if s[feature][l]=="None":
 					s[feature][l] = None
+
+			if cmd_args.noise:
+				getattr(settings,feature).dbname = getattr(settings,feature).dbname.replace(".sqlite","_noise.sqlite") 
+		
 		
 		#Execute
 		cosmo_constraints(batch,s,settings)
