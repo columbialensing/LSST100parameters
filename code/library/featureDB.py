@@ -12,6 +12,12 @@ from lenstools.statistics.database import Database
 from lenstools.pipeline.simulation import SimulationBatch
 
 import numpy as np
+
+try:
+	import matplotlib.pyplot as plt
+except:
+	pass
+
 import astropy.units as u
 import astropy.table as tbl
 
@@ -363,6 +369,8 @@ class FeatureDatabase(Database):
 
 class FisherDatabase(Database):
 
+	z_bins = [(0.0052829915857917076, 0.46370802037163456), (0.46370802037163456, 0.68921284184762954),(0.68921284184762954, 0.93608623056054063),(0.93608623056054063, 1.2872107430836479),(1.2872107430836479, 2.9998163872653354)]
+
 	#Retrieve the parameter covariance matrix from a row in the database
 	def query_parameter_covariance(self,feature_label,nbins=None,table_name="pcov",parameters=["Om","w","sigma8"]):
 
@@ -437,6 +445,36 @@ class FisherDatabase(Database):
 		#Return the number of components and corresponding parameter variance
 		return query_results["bins"].values.astype(np.int),query_results["-".join([parameter,parameter])].values
 
+	#Plot shortcut
+	def plot_all(self,features,table_name,parameter,colors):
+		fig,axes = plt.subplots(2,3,figsize=(24,16))
+		axes = axes.reshape(6)
+
+		#Plot single redshift
+		for n in range(5):
+			for nfeat,feature in enumerate(features):
+				b,p = self.query_parameter_simple(feature+"_z{0}".format(n),table_name,parameter)
+				axes[n].plot(b,np.sqrt(p),color=colors[nfeat],label=feature)
+				axes[n].set_title(r"$z\in[{0:.2f},{1:.2f}]$".format(*self.__class__.z_bins[n]))
+
+		#Plot alltogether
+		for nfeat,feature in enumerate(features):
+			b,p = self.query_parameter_simple(feature,table_name,parameter)
+			axes[-1].plot(b,np.sqrt(p),color=colors[nfeat],label=feature)
+			axes[-1].set_title(r"$z$"+ " tomography")
+
+		#Axes labels
+		for ax in axes:
+			ax.set_xlabel("PCA components",fontsize=18)
+			ax.set_ylabel(r"$\Delta$" + parameter)
+			ax.set_yscale("log")
+			ax.legend(prop={"size":10})
+
+		#Tight layout
+		fig.tight_layout()
+
+		#Return
+		return fig,axes
 
 
 #####################
