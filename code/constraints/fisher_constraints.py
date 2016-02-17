@@ -41,9 +41,6 @@ def split_redshifts(specs,redshift_index=range(5)):
 		#Append to list
 		splitted_specs.append(specs_redshift)
 
-	#Measure with tomography too
-	splitted_specs.append(specs)
-
 	#Return to user
 	return splitted_specs
 
