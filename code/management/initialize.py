@@ -22,8 +22,8 @@ git = LocalGit()
 camb = CAMBSettings()
 ngenic = NGenICSettings()
 gadget2 = Gadget2Settings()
-planes = PlaneSettings.read("../planes.ini")
-catalog = CatalogSettings.read("../catalog.ini")
+planes = PlaneSettings.read("planes.ini")
+catalog = CatalogSettings.read("catalog.ini")
 
 zmax = 3.1
 box_size_Mpc_over_h = 260.0
@@ -56,7 +56,7 @@ if "--tree" in sys.argv:
 	#Add all the models,collections and one realization
 	seed = 5616559
 
-	p = Design.read("../../data/design_fine.pkl")[["Om","w","sigma8"]]
+	p = Design.read(os.path.join(batch.home,"data","design.pkl"))[["Om","w","sigma8"]]
 	d = list()
 
 	for Om,w,si8 in p.values:
