@@ -10,6 +10,7 @@ from lenstools.pipeline.settings import EnvironmentSettings,NGenICSettings,Plane
 from lenstools.pipeline.remote import LocalGit
 from lenstools.simulations.camb import CAMBSettings
 from lenstools.simulations.gadget2 import Gadget2Settings
+from lenstools.simulations.design import Design
 
 import numpy as np
 import astropy.units as u
@@ -53,12 +54,12 @@ else:
 if "--tree" in sys.argv:
 
 	#Add all the models,collections and one realization
-	seed = np.random.randint(10000000)
+	seed = 5616559
 
-	p = np.load("../data/design.npy")
+	p = Design.read("../../data/design_fine.pkl")[["Om","w","sigma8"]]
 	d = list()
 
-	for Om,w,si8 in p:
+	for Om,w,si8 in p.values:
 	
 		#Lay down directory tree
 		cosmo = LensToolsCosmology(Om0=Om,Ode0=1-Om,w0=w,sigma8=si8)
