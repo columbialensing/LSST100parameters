@@ -445,8 +445,8 @@ class FisherDatabase(Database):
 		#Return the number of components and corresponding parameter variance
 		return query_results["bins"].values.astype(np.int),query_results["-".join([parameter,parameter])].values
 
-	#Plot shortcut
-	def plot_all(self,features,table_name,parameter,colors):
+	#Plot shortcut by redshift
+	def plot_by_redshift(self,features,table_name,parameter,colors):
 		fig,axes = plt.subplots(2,3,figsize=(24,16))
 		axes = axes.reshape(6)
 
@@ -462,6 +462,35 @@ class FisherDatabase(Database):
 			b,p = self.query_parameter_simple(feature,table_name,parameter)
 			axes[-1].plot(b,np.sqrt(p),color=colors[nfeat],label=feature)
 			axes[-1].set_title(r"$z$"+ " tomography")
+
+		#Axes labels
+		for ax in axes:
+			ax.set_xlabel("PCA components",fontsize=18)
+			ax.set_ylabel(r"$\Delta$" + parameter)
+			ax.set_yscale("log")
+			ax.legend(prop={"size":10})
+
+		#Tight layout
+		fig.tight_layout()
+
+		#Return
+		return fig,axes
+
+	#Plot shortcut by feature
+	def plot_by_feature(self,features,table_name,parameter):
+		fig,axes = plt.subplots(1,len(features),figsize=(8*len(features),8))
+		
+		#Plot single redshift
+		for nfeat,feature in enumerate(features):
+			for n in range(5):
+				b,p = self.query_parameter_simple(feature+"_z{0}".format(n),table_name,parameter)
+				axes[nfeat].plot(b,np.sqrt(p),label=r"$z\in[{0:.2f},{1:.2f}]$".format(*self.z_bins[n]))
+			axes[nfeat].set_title(feature)
+
+		#Plot alltogether
+		for nfeat,feature in enumerate(features):
+			b,p = self.query_parameter_simple(feature,table_name,parameter)
+			axes[nfeat].plot(b,np.sqrt(p),label=r"$z$"+ " tomography")
 
 		#Axes labels
 		for ax in axes:
