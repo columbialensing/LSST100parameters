@@ -75,10 +75,7 @@ if __name__=="__main__":
 	database_name = cmd_args.database
 	
 	if cmd_args.noise:
-		database_name += "_noise"
-
-	if (cmd_args.photoz_bias is not None) or (cmd_args.photoz_sigma is not None):
-		database_name += "_photoz" 
+		database_name += "_noise" 
 	
 	database_name += ".sqlite"
 
@@ -88,6 +85,11 @@ if __name__=="__main__":
 		cosmo_id,n = model_id.split("|")
 		
 		if cosmo_id==batch.fiducial_cosmo_id:
-			driver.measure(batch,cosmo_id,["Shear","ShearEmuIC"],int(n),cmd_args.noise,cmd_args.photoz_bias,cmd_args.photoz_sigma,database_name,["features_fiducial","features_fiducial_EmuIC"],measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+			
+			if (cmd_args.photoz_bias is not None) or (cmd_args.photoz_sigma is not None):
+				driver.measure(batch,cosmo_id,["Shear","ShearEmuIC"],int(n),cmd_args.noise,cmd_args.photoz_bias,cmd_args.photoz_sigma,database_name,["features_fiducial_photoz","features_fiducial_EmuIC_photoz"],measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+			else:
+				driver.measure(batch,cosmo_id,["Shear","ShearEmuIC"],int(n),cmd_args.noise,cmd_args.photoz_bias,cmd_args.photoz_sigma,database_name,["features_fiducial","features_fiducial_EmuIC"],measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+
 		else:
 			driver.measure(batch,cosmo_id,"Shear",int(n),cmd_args.noise,cmd_args.photoz_bias,cmd_args.photoz_sigma,database_name,"features",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
