@@ -19,13 +19,7 @@ from defaults import settings as default_settings
 ########################################
 
 @Parallelize.masterworker
-def measure(batch,cosmo_id,catalog_names,model_n,add_shape_noise,photoz_bias,photoz_sigma,db_name,table_names,measurer,pool,**kwargs):
-
-	if isinstance(catalog_names,str):
-		catalog_names = [catalog_names]
-
-	if isinstance(table_names,str):
-		table_names = [table_names]*len(catalog_names)
+def measure(batch,cosmo_id,model_n,catalog2table,db_name,add_shape_noise,photoz_bias,photoz_sigma,measurer,pool,**kwargs):
 
 	#Populate database
 	db_full_name = os.path.join(batch.environment.storage,db_name)
@@ -47,14 +41,14 @@ def measure(batch,cosmo_id,catalog_names,model_n,add_shape_noise,photoz_bias,pho
 		model = batch.getModel(cosmo_id)
 			
 		#Process sub catalogs
-		for nc,catalog_name in enumerate(catalog_names):
+		for catalog_name in catalog2table:
 
 			#Log to user
-			logdriver.info("Populating table '{0}' of database {1}...".format(table_names[nc],db_full_name))
+			logdriver.info("Using catalog '{0}' to populate table '{1}' of database {2}...".format(catalog_name,catalog2table[catalog_name],db_full_name))
 
 			for s,sc in enumerate(model.getCollection("512b260").getCatalog(catalog_name).subcatalogs):
 				logdriver.info("Processing model {0}, catalog {1}, sub-catalog {2}...".format(model_n,catalog_name,s+1))
-				db.add_features(table_names[nc],sc,measurer=measurer,extra_columns={"model":model_n,"sub_catalog":s+1},pool=pool,**kwargs)
+				db.add_features(catalog2table[catalog_name],sc,measurer=measurer,extra_columns={"model":model_n,"sub_catalog":s+1},pool=pool,**kwargs)
 
 
 ################################################

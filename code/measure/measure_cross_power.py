@@ -49,7 +49,22 @@ def cross_power(maps,ell_edges,indices):
 
 if __name__=="__main__":
 
-	#parse command line arguments
+	########################################################################################################################
+
+	#Redshift bin index pairs and multipoles
+	measurer_kwargs = {
+	
+	"measurer" : cross_power,
+	"ell_edges" : pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["ell_edges"].values,
+	"indices" : zip(*np.triu_indices(5))
+	
+	}
+
+	#############################################################
+	###########The part below should be standard#################
+	#############################################################
+
+	#Parse command line arguments
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-e","--environment",dest="environment",help="Environment options file")
 	parser.add_argument("-c","--config",dest="config",help="Configuration file")
@@ -67,11 +82,7 @@ if __name__=="__main__":
 	#Handle on the current batch
 	batch = LSSTSimulationBatch(EnvironmentSettings.read(cmd_args.environment))
 
-	#Redshift bin index pairs and multipoles
-	indices = zip(*np.triu_indices(5))
-	ell_edges = pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["ell_edges"].values
-
-	#Database name
+	#Output database name
 	database_name = cmd_args.database
 	
 	if cmd_args.noise:
@@ -79,17 +90,39 @@ if __name__=="__main__":
 	
 	database_name += ".sqlite"
 
+	driver_kwargs = {
+
+	"db_name" : database_name,
+	"add_shape_noise" : cmd_args.noise,
+	"photoz_bias" : cmd_args.photoz_bias,
+	"photoz_sigma" : cmd_args.photoz_sigma,
+	"pool" : None
+
+	}
+
+	#Merge keyword arguments dictionaries
+	driver_measurer_kwargs = dict(driver_kwargs,**measurer_kwargs)
+
 	#Execute
 	for model_id in cmd_args.id:
 		
+		#Parse cosmo_id and model number
 		cosmo_id,n = model_id.split("|")
 		
+		#Check conditions for table names
 		if cosmo_id==batch.fiducial_cosmo_id:
 			
 			if (cmd_args.photoz_bias is not None) or (cmd_args.photoz_sigma is not None):
-				driver.measure(batch,cosmo_id,["Shear","ShearEmuIC"],int(n),cmd_args.noise,cmd_args.photoz_bias,cmd_args.photoz_sigma,database_name,["features_fiducial_photoz","features_fiducial_EmuIC_photoz"],measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+				catalog2table = {"Shear":"features_fiducial_photoz","ShearEmuIC":"features_fiducial_EmuIC_photoz"}
 			else:
-				driver.measure(batch,cosmo_id,["Shear","ShearEmuIC"],int(n),cmd_args.noise,cmd_args.photoz_bias,cmd_args.photoz_sigma,database_name,["features_fiducial","features_fiducial_EmuIC"],measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+				catalog2table = {"Shear":"features_fiducial","ShearEmuIC":"features_fiducial_EmuIC"}
 
 		else:
-			driver.measure(batch,cosmo_id,"Shear",int(n),cmd_args.noise,cmd_args.photoz_bias,cmd_args.photoz_sigma,database_name,"features",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+
+			if (cmd_args.photoz_bias is not None) or (cmd_args.photoz_sigma is not None):
+				catalog2table = {"Shear":"features_photoz"}
+			else:
+				catalog2table = {"Shear":"features"}
+
+		#Execution
+		driver.measure(batch=batch,cosmo_id=cosmo_id,model_n=int(n),catalog2table=catalog2table,**driver_measurer_kwargs)
