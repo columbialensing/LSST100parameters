@@ -279,10 +279,15 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			logdriver.info("Approximating the emulator linearly around ({0})=({1}), derivative precision={2:.2f}...".format(",".join(pnames),",".join(["{0:.2f}".format(p) for p in settings.fiducial_parameters]),settings.derivative_precision))
 			fisher = emulator_pca.approximate_linear(settings.fiducial_parameters,settings.derivative_precision)
 
-			#Compute the parameter covariance matrix correcting for the inverse covariance bias
+			#Compute the feature covariance matrix
 			logdriver.info("Computing the {0}x{0} feature covariance matrix, Nreal={1}, NLSST={2}...".format(covariance_pca.shape[1],specs["realizations_for_covariance"],settings.covariance_to_lsst))
 			feature_covariance = covariance_pca.head(specs["realizations_for_covariance"]).cov() / settings.covariance_to_lsst
 
+			#Fit for the cosmological parameters
+			logdriver.info("Fitting for cosmological parameters ({0})...".format(",".join(fisher.parameter_names)))
+			parameter_fit = fisher.fit(data_pca.head(specs["realizations_for_data"]).mean(),feature_covariance)
+
+			#Compute the parameter covariance matrix correcting for the inverse covariance bias
 			logdriver.info("Computing {0}x{0} parameter covariance matrix, Nbins={1}...".format(len(pnames),covariance_pca.shape[1]))
 			parameter_covariance = fisher.parameter_covariance(feature_covariance,correct=specs["realizations_for_covariance"])
 
@@ -292,6 +297,12 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 
 			#Format the row to insert
 			row = pd.Series(parameter_covariance.values.flatten(),index=pcov_columns)
+
+			#Insert best parameter fit
+			for p in parameter_fit:
+				row[p+"_fit"] = parameter_fit[p]
+
+			#Metadata
 			row["bins"] = covariance_pca.shape[1]
 			row["feature_label"] = feature_label
 
