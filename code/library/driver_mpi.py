@@ -299,7 +299,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			row = pd.Series(parameter_covariance.values.flatten(),index=pcov_columns)
 
 			#Insert best parameter fit
-			for p in parameter_fit:
+			for p in parameter_fit.index:
 				row[p+"_fit"] = parameter_fit[p]
 
 			#Metadata
