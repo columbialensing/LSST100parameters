@@ -53,7 +53,11 @@ if __name__=="__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-e","--environment",dest="environment",help="Environment options file")
 	parser.add_argument("-c","--config",dest="config",help="Configuration file")
+
 	parser.add_argument("-n","--noise",dest="noise",action="store_true",default=False,help="Add shape noise")
+	parser.add_argument("-pb","--photoz_bias",dest="photoz_bias",action="store",default=None,help="Read photoz biases from this file")
+	parser.add_argument("-ps","--photoz_sigma",dest="photoz_sigma",action="store",default=None,help="Read photoz sigmas from this file")
+	
 	parser.add_argument("-d","--database",dest="database",default="cross_spectra",help="Database name to populate")
 	parser.add_argument("id",nargs="*")
 	cmd_args = parser.parse_args()
@@ -69,8 +73,13 @@ if __name__=="__main__":
 
 	#Database name
 	database_name = cmd_args.database
+	
 	if cmd_args.noise:
 		database_name += "_noise"
+
+	if (cmd_args.photoz_bias is not None) or (cmd_args.photoz_sigma is not None):
+		database_name += "_photoz" 
+	
 	database_name += ".sqlite"
 
 	#Execute
@@ -79,6 +88,6 @@ if __name__=="__main__":
 		cosmo_id,n = model_id.split("|")
 		
 		if cosmo_id==batch.fiducial_cosmo_id:
-			driver.measure(batch,cosmo_id,["Shear","ShearEmuIC"],int(n),cmd_args.noise,database_name,["features_fiducial","features_fiducial_EmuIC"],measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+			driver.measure(batch,cosmo_id,["Shear","ShearEmuIC"],int(n),cmd_args.noise,cmd_args.photoz_bias,cmd_args.photoz_sigma,database_name,["features_fiducial","features_fiducial_EmuIC"],measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
 		else:
-			driver.measure(batch,cosmo_id,"Shear",int(n),cmd_args.noise,database_name,"features",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)
+			driver.measure(batch,cosmo_id,"Shear",int(n),cmd_args.noise,cmd_args.photoz_bias,cmd_args.photoz_sigma,database_name,"features",measurer=cross_power,pool=None,ell_edges=ell_edges,indices=indices)

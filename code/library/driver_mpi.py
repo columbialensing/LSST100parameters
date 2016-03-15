@@ -19,7 +19,7 @@ from defaults import settings as default_settings
 ########################################
 
 @Parallelize.masterworker
-def measure(batch,cosmo_id,catalog_names,model_n,add_shape_noise,db_name,table_names,measurer,pool,**kwargs):
+def measure(batch,cosmo_id,catalog_names,model_n,add_shape_noise,photoz_bias,photoz_sigma,db_name,table_names,measurer,pool,**kwargs):
 
 	if isinstance(catalog_names,str):
 		catalog_names = [catalog_names]
@@ -32,7 +32,16 @@ def measure(batch,cosmo_id,catalog_names,model_n,add_shape_noise,db_name,table_n
 	with FeatureDatabase(db_full_name) as db:
 
 		if add_shape_noise:
+			logdriver.info("Shape noise is turned on.")
 			db.map_specs["add_shape_noise"] = True
+
+		if photoz_bias is not None:
+			logdriver.info("Photoz bias is turned on and read from {0}".format(photoz_bias))
+			db.map_specs["photoz_bias"] = photoz_bias
+
+		if photoz_sigma is not None:
+			logdriver.info("Photoz sigma is turned on and read from {0}".format(photoz_sigma))
+			db.map_specs["photoz_sigma"] = photoz_sigma
 			
 		#Handle on the model 
 		model = batch.getModel(cosmo_id)

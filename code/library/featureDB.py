@@ -21,6 +21,8 @@ except:
 import astropy.units as u
 import astropy.table as tbl
 
+from photoz import generate_gaussian_photoz_errors
+
 real = re.compile(r'([0-9]{4})r\.fits')
 
 #############################################
@@ -50,8 +52,8 @@ def process_realization(realization,db_type,map_specs,sub_catalog,measurer,**kwa
 	position_files = [ "/global/homes/a/apetri/LSST100Parameters/data/positions_bin{0}.fits".format(n) for n in range(1,map_specs["nzbins"]+1) ]
 	shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,map_specs["nzbins"]+1) ]
 
-	#Construct the maps
-	maps = db_type.make_maps(shear_files,position_files,npixel=map_specs["npixel"],smooth=map_specs["smooth"],fov=map_specs["fov"],add_shape_noise=map_specs["add_shape_noise"])
+	#Construct the kappa maps
+	maps = db_type.make_maps(shear_files,position_files,**map_specs)
 
 	#Measure the features
 	ensemble_realization = measurer(maps,**kwargs)
@@ -78,7 +80,10 @@ class FeatureDatabase(Database):
 	"npixel" : 512,
 	"smooth" : 0.5*u.arcmin,
 	"fov" : 3.5*u.deg,
-	"add_shape_noise" : False
+	"zbins" : [(0.0052829915857917076, 0.46370802037163456), (0.46370802037163456, 0.68921284184762954),(0.68921284184762954, 0.93608623056054063),(0.93608623056054063, 1.2872107430836479),(1.2872107430836479, 2.9998163872653354)],
+	"add_shape_noise" : False,
+	"photoz_bias" : None,
+	"photoz_sigma" : None
 	}
 
 	def __init__(self,name,**kwargs):
@@ -144,7 +149,7 @@ class FeatureDatabase(Database):
 	###############################################
 	
 	@staticmethod
-	def make_maps(shear_files,position_files,npixel=512,smooth=0.5*u.arcmin,fov=3.5*u.deg,add_shape_noise=False):
+	def make_maps(shear_files,position_files,npixel=512,smooth=0.5*u.arcmin,fov=3.5*u.deg,zbins=None,add_shape_noise=False,photoz_bias=None,photoz_sigma=None):
 
 		"""
 		:param shear_files: list of files that contain the shear catalogs
@@ -162,29 +167,35 @@ class FeatureDatabase(Database):
 
 		#Read in all the shear catalogs, and convert to convergence maps with E/B mode decomposition
 		convergence_maps = list()
-		
-		#Cycle over redshift bins
-		for n,shear_file in enumerate(shear_files):
 
-			full_catalog = tbl.hstack((ShearCatalog.read(position_files[n]),ShearCatalog.read(shear_file)))
+		#Combine single catalog files in a big catalog
+		full_catalog = ShearCatalog.readall(shear_files,position_files)
+
+		#Set seed for random noise generation
+		try:
+			seed = int(real.search(shear_files[0]).groups()[0])
+		except AttributeError:
+			seed = None
 			
-			#Add shape noise
-			if add_shape_noise:
-				
-				#Set seed
-				try:
-					r = int(real.search(shear_file).groups()[0])
-					seed = r + 100000*n
-				except AttributeError:
-					seed = None
+		#Generate shape noise and add it to the catalog
+		if add_shape_noise:
+			shape_noise = full_catalog.shapeNoise(seed)
+			full_catalog["shear1"] += shape_noise["shear1"]
+			full_catalog["shear2"] += shape_noise["shear2"]
 
-				#Generate noise and add it to the catalog
-				shape_noise = full_catalog.shapeNoise(seed)
-				full_catalog["shear1"] += shape_noise["shear1"]
-				full_catalog["shear2"] += shape_noise["shear2"]
+		#Generate photoz errors
+		if (photoz_bias is not None) or (photoz_sigma is not None):
+			full_catalog["z"] += generate_gaussian_photoz_errors(full_catalog["z"],bias=photoz_bias,sigma=photoz_sigma)
 
-			#Append to the redshift binned convergence map
-			convergence_maps.append(full_catalog.toMap(map_size=fov,npixel=npixel,smooth=smooth).convergence())
+		#Re-bin the catalog to produce tomographic shear maps
+		if zbins is not None:
+			full_catalog_rebin = full_catalog.rebin(zbins,field="z")
+		else:
+			full_catalog_rebin = [full_catalog]
+
+		#Append to the redshift binned convergence map
+		for sc in full_catalog_rebin:
+			convergence_maps.append(sc.toMap(map_size=fov,npixel=npixel,smooth=smooth).convergence())
 
 		#Return
 		return convergence_maps
