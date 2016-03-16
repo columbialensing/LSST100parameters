@@ -77,7 +77,7 @@ def measure_main(measurer_kwargs,default_db_name):
 	#Output database name
 	database_name = cmd_args.database
 	
-	if cmd_args.noise:
+	if options.getboolean("Noise","add_shape_noise"):
 		database_name += "_noise" 
 	
 	database_name += ".sqlite"
@@ -104,14 +104,14 @@ def measure_main(measurer_kwargs,default_db_name):
 		#Check conditions for table names
 		if cosmo_id==batch.fiducial_cosmo_id:
 			
-			if (cmd_args.photoz_bias is not None) or (cmd_args.photoz_sigma is not None):
+			if (driver_kwargs["photoz_bias"] is not None) or (driver_kwargs["photoz_sigma"] is not None):
 				catalog2table = {"Shear":"features_fiducial_photoz","ShearEmuIC":"features_fiducial_EmuIC_photoz"}
 			else:
 				catalog2table = {"Shear":"features_fiducial","ShearEmuIC":"features_fiducial_EmuIC"}
 
 		else:
 
-			if (cmd_args.photoz_bias is not None) or (cmd_args.photoz_sigma is not None):
+			if (driver_kwargs["photoz_bias"] is not None) or (driver_kwargs["photoz_sigma"] is not None):
 				catalog2table = {"Shear":"features_photoz"}
 			else:
 				catalog2table = {"Shear":"features"}
