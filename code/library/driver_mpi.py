@@ -1,6 +1,7 @@
 import os
-import argparse
+import argparse,logging
 import itertools
+from distutils import config
 
 import numpy as np
 import pandas as pd
@@ -10,8 +11,9 @@ from lenstools.utils.decorators import Parallelize
 from lenstools.statistics.ensemble import Ensemble
 from lenstools.statistics.constraints import Emulator
 from lenstools.statistics.samplers import multiquadric
+from lenstools.pipeline.settings import EnvironmentSettings
 
-from featureDB import FeatureDatabase
+from featureDB import FeatureDatabase,LSSTSimulationBatch
 from defaults import settings as default_settings
 
 ########################################
@@ -49,6 +51,73 @@ def measure(batch,cosmo_id,model_n,catalog2table,db_name,add_shape_noise,photoz_
 			for s,sc in enumerate(model.getCollection("512b260").getCatalog(catalog_name).subcatalogs):
 				logdriver.info("Processing model {0}, catalog {1}, sub-catalog {2}...".format(model_n,catalog_name,s+1))
 				db.add_features(catalog2table[catalog_name],sc,measurer=measurer,extra_columns={"model":model_n,"sub_catalog":s+1},pool=pool,**kwargs)
+
+
+def measure_main(measurer_kwargs,default_db_name):
+
+	#INI option parser
+	options = config.ConfigParser()
+
+	#Parse command line arguments
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-e","--environment",dest="environment",help="Environment options file")
+	parser.add_argument("-c","--config",dest="config",default="measure.ini",help="Configuration file")
+	parser.add_argument("-d","--database",dest="database",default=default_db_name,help="Database name to populate")
+	parser.add_argument("id",nargs="*")
+	cmd_args = parser.parse_args()
+
+	logging.basicConfig(level=logging.INFO)
+
+	#Handle on the current batch
+	batch = LSSTSimulationBatch(EnvironmentSettings.read(cmd_args.environment))
+
+	#Read the options
+	options.read(cmd_args.config)
+
+	#Output database name
+	database_name = cmd_args.database
+	
+	if cmd_args.noise:
+		database_name += "_noise" 
+	
+	database_name += ".sqlite"
+
+	driver_kwargs = {
+
+	"db_name" : database_name,
+	"add_shape_noise" : options.getboolean("Noise","add_shape_noise"),
+	"photoz_bias" : options.get("Noise","photoz_bias"),
+	"photoz_sigma" : options.get("Noise","photoz_sigma"),
+	"pool" : None
+
+	}
+
+	#Merge keyword arguments dictionaries
+	driver_measurer_kwargs = dict(driver_kwargs,**measurer_kwargs)
+
+	#Execute
+	for model_id in cmd_args.id:
+		
+		#Parse cosmo_id and model number
+		cosmo_id,n = model_id.split("|")
+		
+		#Check conditions for table names
+		if cosmo_id==batch.fiducial_cosmo_id:
+			
+			if (cmd_args.photoz_bias is not None) or (cmd_args.photoz_sigma is not None):
+				catalog2table = {"Shear":"features_fiducial_photoz","ShearEmuIC":"features_fiducial_EmuIC_photoz"}
+			else:
+				catalog2table = {"Shear":"features_fiducial","ShearEmuIC":"features_fiducial_EmuIC"}
+
+		else:
+
+			if (cmd_args.photoz_bias is not None) or (cmd_args.photoz_sigma is not None):
+				catalog2table = {"Shear":"features_photoz"}
+			else:
+				catalog2table = {"Shear":"features"}
+
+		#Execution
+		measure(batch=batch,cosmo_id=cosmo_id,model_n=int(n),catalog2table=catalog2table,**driver_measurer_kwargs)
 
 
 ################################################
