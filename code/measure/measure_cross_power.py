@@ -45,8 +45,14 @@ def cross_power(maps,ell_edges,indices):
 measurer_kwargs = {
 	
 "measurer" : cross_power,
-"ell_edges" : pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["ell_edges"].values,
-"indices" : zip(*np.triu_indices(5))
+"indices" : zip(*np.triu_indices(5)),
+"ell_edges" : np.array([  100.,   238.,   376.,   514.,   652.,   790.,   928.,  1066., 
+	1204.,  1342.,  1480.,  1618.,  1756.,  1894.,  2032.,  2170.,
+	2308.,  2446.,  2584.,  2722.,  2860.,  2998.,  3136.,  3274.,
+	3412.,  3550.,  3688.,  3826.,  3964.,  4102.,  4240.,  4378.,
+	4516.,  4654.,  4792.,  4930.,  5068.,  5206.,  5344.,  5482.,
+	5620.,  5758.,  5896.,  6034.,  6172.,  6310.,  6448.,  6586.,
+	6724.,  6862.,  7000.])
 	
 }
 
