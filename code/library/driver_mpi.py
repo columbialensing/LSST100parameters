@@ -138,8 +138,14 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	#First read in which kind of features are we combining
 	for feature in specs["features"]:
 
+		#Feature dbname
+		if "features_dbname" in specs[feature]:
+			features_dbname = specs[feature]["features_dbname"]
+		else:
+			features_dbname = getattr(settings,feature).dbname 
+
 		#Query the database
-		feature_dbfile = os.path.join(batch.storage,getattr(settings,feature).dbname)
+		feature_dbfile = os.path.join(batch.storage,features_dbname)
 		print("")
 		logdriver.info("Reading {0} from {1}".format(feature,feature_dbfile))
 
@@ -214,7 +220,13 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			#Read in the data#
 			##################
 
-			logdriver.info("Reading data to fit from table {0}".format(getattr(settings,feature).data_table))
+			#Allow to override the name of the data table
+			if "data_table" in specs[feature]:
+				data_table = specs[feature]["data_table"]
+			else:
+				data_table = getattr(settings,feature).data_table
+
+			logdriver.info("Reading data to fit from table {0}".format(data_table))
 			sql_query = getattr(settings,feature).data_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"],realization_filter=specs[feature]["realization_filter"])
 			logdriver.info("SQL: {0}".format(sql_query))
 			query_results = db.query(sql_query)
@@ -300,8 +312,8 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	pcov_columns = ["{0}-{1}".format(i,j) for i,j in itertools.product(pnames,pnames)]
 
 	#Constraints database
-	outdbname = os.path.join(batch.home,"data",specs["dbname"])
-	logdriver.info("Saving constraints to {0}, table '{1}'".format(outdbname,specs["table_name"]))
+	outdbname = os.path.join(batch.home,"data",specs["output_dbname"])
+	logdriver.info("Saving constraints to {0}, table '{1}'".format(outdbname,specs["output_table_name"]))
 
 	#Number of PCA components to process
 	if "pca_components" in specs:
@@ -379,7 +391,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			row["feature_label"] = feature_label
 
 			#Insert the row
-			db.insert(pd.DataFrame(row).T,specs["table_name"])
+			db.insert(pd.DataFrame(row).T,specs["output_table_name"])
 
 
 
