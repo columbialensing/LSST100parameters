@@ -49,8 +49,9 @@ def process_realization(realization,db_type,map_specs,sub_catalog,measurer,**kwa
 	"""
 
 	#Construct file names of shear and position catalogs
-	position_files = [ "/global/homes/a/apetri/LSST100Parameters/data/positions_bin{0}.fits".format(n) for n in range(1,len(map_specs["zbins"])+1) ]
-	shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,len(map_specs["zbins"])+1) ]
+	position_file_path = os.path.join(sub_catalog.environment.storage,sub_catalog.cosmo_id,sub_catalog.geometry_id,sub_catalog.name)
+	position_files = [ os.path.join(position_file_path,"positions_bin{0}.fits".format(n)) for n in range(1,6) ]
+	shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,6) ]
 
 	#Construct the kappa maps
 	maps = db_type.make_maps(shear_files,position_files,**map_specs)
