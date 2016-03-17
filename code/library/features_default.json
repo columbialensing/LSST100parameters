@@ -1,3 +1,5 @@
+//Feature label in output is contructed as feature_label_format.format(features_label_root,npca,realizations_for_covariance,realizations_for_data)
+
 {
 	"output_dbname" : "constraints.sqlite" ,
 	"output_table_name" : "fisher_matrix" ,
