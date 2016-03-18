@@ -1,7 +1,7 @@
 import os
 import argparse,logging
 import itertools
-from distutils import config
+import json
 
 import numpy as np
 import pandas as pd
@@ -55,13 +55,10 @@ def measure(batch,cosmo_id,model_n,catalog2table,db_name,add_shape_noise,photoz_
 
 def measure_main(measurer_kwargs,default_db_name):
 
-	#INI option parser
-	options = config.ConfigParser()
-
 	#Parse command line arguments
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-e","--environment",dest="environment",help="Environment options file")
-	parser.add_argument("-c","--config",dest="config",default="measure.ini",help="Configuration file")
+	parser.add_argument("-c","--config",dest="config",default="measure.json",help="Configuration file (JSON format)")
 	parser.add_argument("-d","--database",dest="database",default=default_db_name,help="Database name to populate")
 	parser.add_argument("id",nargs="*")
 	cmd_args = parser.parse_args()
@@ -71,13 +68,14 @@ def measure_main(measurer_kwargs,default_db_name):
 	#Handle on the current batch
 	batch = LSSTSimulationBatch(EnvironmentSettings.read(cmd_args.environment))
 
-	#Read the options
-	options.read(cmd_args.config)
+	#Read the JSON options
+	with open(cmd_args.config,"r") as fp:
+		options = json.load(fp)
 
 	#Output database name
 	database_name = cmd_args.database
 	
-	if options.getboolean("Noise","add_shape_noise"):
+	if options["add_shape_noise"]:
 		database_name += "_noise" 
 	
 	database_name += ".sqlite"
@@ -85,15 +83,15 @@ def measure_main(measurer_kwargs,default_db_name):
 	driver_kwargs = {
 
 	"db_name" : database_name,
-	"add_shape_noise" : options.getboolean("Noise","add_shape_noise"),
-	"photoz_bias" : options.get("Noise","photoz_bias"),
-	"photoz_sigma" : options.get("Noise","photoz_sigma"),
+	"add_shape_noise" : options["add_shape_noise"],
+	"photoz_bias" : options["photoz_bias"],
+	"photoz_sigma" : options["photoz_sigma"],
 	"pool" : None
 
 	}
 
 	#Suffix for table names with photoz
-	photoz_table_suffix = options.get("Noise","photoz_suffix")
+	photoz_table_suffix = options["photoz_suffix"]
 
 	#Merge keyword arguments dictionaries
 	driver_measurer_kwargs = dict(driver_kwargs,**measurer_kwargs)
