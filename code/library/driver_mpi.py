@@ -92,6 +92,9 @@ def measure_main(measurer_kwargs,default_db_name):
 
 	}
 
+	#Suffix for table names with photoz
+	photoz_table_suffix = options.get("Noise","photoz_suffix")
+
 	#Merge keyword arguments dictionaries
 	driver_measurer_kwargs = dict(driver_kwargs,**measurer_kwargs)
 
@@ -105,14 +108,14 @@ def measure_main(measurer_kwargs,default_db_name):
 		if cosmo_id==batch.fiducial_cosmo_id:
 			
 			if (driver_kwargs["photoz_bias"] is not None) or (driver_kwargs["photoz_sigma"] is not None):
-				catalog2table = {"Shear":"features_fiducial_photoz","ShearEmuIC":"features_fiducial_EmuIC_photoz"}
+				catalog2table = {"Shear":"features_fiducial_{0}".format(photoz_table_suffix),"ShearEmuIC":"features_fiducial_EmuIC_{0}".format(photoz_table_suffix)}
 			else:
 				catalog2table = {"Shear":"features_fiducial","ShearEmuIC":"features_fiducial_EmuIC"}
 
 		else:
 
 			if (driver_kwargs["photoz_bias"] is not None) or (driver_kwargs["photoz_sigma"] is not None):
-				catalog2table = {"Shear":"features_photoz"}
+				catalog2table = {"Shear":"features_{0}".format(photoz_table_suffix)}
 			else:
 				catalog2table = {"Shear":"features"}
 
@@ -397,6 +400,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 
 			#Maybe repeat the procedure for multiple mock observations
 			if mock_data_realizations>1:
+				
 				for nm in range(len(mock_data_realizations)):
 
 					#Build data vector
