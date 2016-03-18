@@ -75,7 +75,7 @@ def measure_main(measurer_kwargs,default_db_name):
 	#Output database name
 	database_name = cmd_args.database
 	
-	if options.getboolean("Noise","add_shape_noise"):
+	if options["add_shape_noise"]:
 		database_name += "_noise" 
 	
 	database_name += ".sqlite"
