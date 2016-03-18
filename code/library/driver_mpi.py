@@ -397,7 +397,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 
 			#Maybe repeat the procedure for multiple mock observations
 			if mock_data_realizations>1:
-				for nm in range(len(mock_data_realizations)):
+				for nm in range(mock_data_realizations):
 
 					#Build data vector
 					logdriver.info("Building data vector averaging over {0} realizations (mock observation {1} of {2})...".format(realizations_for_data,nm+1,mock_data_realizations))
