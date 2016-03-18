@@ -131,6 +131,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	####################################################################################################################
 
 	#Print a break in the output
+	print("")
 	print("#"*(10 + 1 + len(specs["feature_label_root"]) + 1 + 10))
 	print("#"*10 + " " + specs["feature_label_root"] + " " + "#"*10)
 	print("#"*(10 + 1 + len(specs["feature_label_root"]) + 1 + 10))
@@ -372,10 +373,6 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			logdriver.info("Computing the {0}x{0} feature covariance matrix, Nreal={1}, NLSST={2}...".format(covariance_pca.shape[1],specs["realizations_for_covariance"],settings.covariance_to_lsst))
 			feature_covariance = covariance_pca.head(specs["realizations_for_covariance"]).cov() / settings.covariance_to_lsst
 
-			#Fit for the cosmological parameters
-			logdriver.info("Fitting for cosmological parameters ({0})...".format(",".join(fisher.parameter_names)))
-			parameter_fit = fisher.fit(data_pca.head(specs["realizations_for_data"]).mean(),feature_covariance)
-
 			#Compute the parameter covariance matrix correcting for the inverse covariance bias
 			logdriver.info("Computing {0}x{0} parameter covariance matrix, Nbins={1}...".format(len(pnames),covariance_pca.shape[1]))
 			parameter_covariance = fisher.parameter_covariance(feature_covariance,correct=specs["realizations_for_covariance"])
@@ -387,16 +384,55 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			#Format the row to insert
 			row = pd.Series(parameter_covariance.values.flatten(),index=pcov_columns)
 
-			#Insert best parameter fit
-			for p in parameter_fit.index:
-				row[p+"_fit"] = parameter_fit[p]
-
 			#Metadata
 			row["bins"] = covariance_pca.shape[1]
 			row["feature_label"] = feature_label
 
-			#Insert the row
-			db.insert(pd.DataFrame(row).T,specs["output_table_name"])
+			#####################################
+			#Fit for the cosmological parameters#
+			#####################################
+
+			realizations_for_data = specs["realizations_for_data"]
+			mock_data_realizations = specs["mock_data_realizations"]
+
+			#Maybe repeat the procedure for multiple mock observations
+			if mock_data_realizations>1:
+				for nm in range(len(mock_data_realizations)):
+
+					#Build data vector
+					logdriver.info("Building data vector averaging over {0} realizations (mock observation {1} of {2})...".format(realizations_for_data,nm+1,mock_data_realizations))
+					data_vector = data_pca.reindex(np.random.randint(0,len(data_pca),size=realizations_for_data)).mean()
+
+					#Perform the fit
+					logdriver.info("Fitting for cosmological parameters ({0})...".format(",".join(fisher.parameter_names)))
+					parameter_fit = fisher.fit(data_vector,feature_covariance)
+
+					#Insert best parameter fit
+					for p in parameter_fit.index:
+						row[p+"_fit"] = parameter_fit[p]
+
+					#Insert the row
+					row["mock"] = nm+1
+					db.insert(pd.DataFrame(row).T,specs["output_table_name"])
+			
+
+			else:
+
+				#Build data vector
+				logdriver.info("Building data vector averaging over {0} realizations...".format(realizations_for_data))
+				data_vector = data_pca.head(realizations_for_data).mean()
+
+				#Perform the fit
+				logdriver.info("Fitting for cosmological parameters ({0})...".format(",".join(fisher.parameter_names)))
+				parameter_fit = fisher.fit(data_vector,feature_covariance)
+
+				#Insert best parameter fit
+				for p in parameter_fit.index:
+					row[p+"_fit"] = parameter_fit[p]
+
+				#Insert the row
+				row["mock"] = 1
+				db.insert(pd.DataFrame(row).T,specs["output_table_name"])
 
 
 

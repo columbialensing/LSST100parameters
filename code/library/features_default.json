@@ -13,5 +13,6 @@
 	
 	"realizations_for_covariance" : 16000,
 	"realizations_for_data" : 1600,
+	"mock_data_realizations" : 1,
 	"pca_components" : [10,20]
 }
