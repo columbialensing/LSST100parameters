@@ -130,6 +130,11 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 	##Specs should be a dictionary with all the information needed to combine the features and compute the constraints##
 	####################################################################################################################
 
+	#Print a break in the output
+	print("#"*(10 + 1 + len(specs["feature_label_root"]) + 1 + 10))
+	print("#"*10 + " " + specs["feature_label_root"] + " " + "#"*10)
+	print("#"*(10 + 1 + len(specs["feature_label_root"]) + 1 + 10))
+
 	#Placeholders for emulator, data and covariance
 	emulator = Ensemble(columns=["model"])
 	covariance = Ensemble(columns=["realization"])
