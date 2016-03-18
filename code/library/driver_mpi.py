@@ -227,7 +227,7 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 				data_table = getattr(settings,feature).data_table
 
 			logdriver.info("Reading data to fit from table {0}".format(data_table))
-			sql_query = getattr(settings,feature).data_query(feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"],realization_filter=specs[feature]["realization_filter"])
+			sql_query = getattr(settings,feature).data_query(data_table=data_table,feature_filter=specs[feature]["feature_filter"],redshift_filter=specs[feature]["redshift_filter"],realization_filter=specs[feature]["realization_filter"])
 			logdriver.info("SQL: {0}".format(sql_query))
 			query_results = db.query(sql_query)
 
