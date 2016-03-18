@@ -43,7 +43,11 @@ measurer_kwargs = {
 	
 "measurer" : peaks,
 "indices" : range(5),
-"kappa_edges" : pd.read_pickle("/global/homes/a/apetri/LSST100Parameters/data/edges.pkl")["kappa_edges_sigma"].values
+"kappa_edges" : np.array([ -2. ,  -1.7,  -1.4,  -1.1,  -0.8,  -0.5,  -0.2,   0.1,   
+	0.4, 0.7,   1. ,   1.3,   1.6,   1.9,   2.2,   2.5,   2.8,   3.1, 3.4,   3.7,   
+	4. ,   4.3,   4.6,   4.9,   5.2,   5.5,   5.8, 6.1,   6.4,   6.7,   7. , 7.3,   
+	7.6,   7.9,   8.2,   8.5, 8.8,   9.1,   9.4,   9.7,  10. ,  10.3,  10.6,  10.9,  
+	11.2, 11.5,  11.8,  12.1,  12.4,  12.7,  13. ])
 	
 }
 

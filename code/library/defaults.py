@@ -57,7 +57,7 @@ class FeatureSettings(object):
 	##################################
 
 	#Data and covariance query
-	def data_query(self,feature_filter=None,redshift_filter=None,realization_filter=None):
+	def data_query(self,data_table=None,feature_filter=None,redshift_filter=None,realization_filter=None):
 
 		#Build the query on top of this
 		query = "SELECT realization,"
@@ -71,7 +71,10 @@ class FeatureSettings(object):
 		query += "," + ",".join(self.redshift_labels)
 		
 		#Table name
-		query += " FROM {0}".format(self.data_table)
+		if data_table is None:
+			query += " FROM {0}".format(self.data_table)
+		else:
+			query += " FROM {0}".format(data_table) 
 
 		#Additional redshift filter
 		if (redshift_filter is not None) or (realization_filter is not None):
@@ -90,11 +93,11 @@ class FeatureSettings(object):
 		return query
 
 	def covariance_query (self,feature_filter=None,redshift_filter=None,realization_filter=None):
-		return self.data_query(feature_filter,redshift_filter,realization_filter).replace("FROM {0}".format(self.data_table),"FROM {0}".format(self.covariance_table))
+		return self.data_query(None,feature_filter,redshift_filter,realization_filter).replace("FROM {0}".format(self.data_table),"FROM {0}".format(self.covariance_table))
 
 	#Emulator query
 	def emulator_query(self,feature_filter=None,redshift_filter=None):
-		data_query = self.data_query(feature_filter,redshift_filter,None)
+		data_query = self.data_query(None,feature_filter,redshift_filter,None)
 		emulator_query = data_query.replace("SELECT realization,","SELECT model,")
 		return emulator_query.replace("FROM {0}".format(self.data_table),"FROM {0}".format(self.emulator_table)) 
 	

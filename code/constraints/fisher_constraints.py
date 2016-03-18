@@ -14,7 +14,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-e","--environment",dest="environment",action="store",default="environment.ini",help="INI file with the batch location")
 parser.add_argument("-f","--features",dest="features",action="store",default=None,help="JSON file containing the specifications of the features to combine, in None, these are read from stdin")
 parser.add_argument("-v","--verbose",dest="verbose",action="store_true",default=False,help="Turn on verbosity")
-parser.add_argument("-n","--noisy",dest="noise",action="store_true",default=False,help="Process features with shape noise")
 
 #Create a list of single redshift features out of a tomographic one
 def split_redshifts(specs,redshift_index=range(5)):
@@ -68,11 +67,6 @@ def main():
 			specs = json.load(fp)
 	else:
 		specs = json.loads(sys.stdin.read())
-
-	#Shape noise yes/no
-	if cmd_args.noise:
-		for feature in settings.features:
-			getattr(settings,feature).dbname = getattr(settings,feature).dbname.replace(".sqlite","_noise.sqlite") 
 
 	if type(specs)==dict:
 		specs = [specs]

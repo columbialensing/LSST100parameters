@@ -1,12 +1,14 @@
+//Feature label in output is contructed as feature_label_format.format(features_label_root,npca,realizations_for_covariance,realizations_for_data)
+
 {
-	"dbname" : "constraints.sqlite" ,
-	"table_name" : "fisher_matrix" ,
+	"output_dbname" : "constraints.sqlite" ,
+	"output_table_name" : "fisher_matrix" ,
 	"feature_label_root" : "power_only" ,
 	"feature_label_format" : "{0}" ,
 
 	"features" : ["power_spectrum","moments"] , 
 	
-	"power_spectrum" : {"feature_filter":"None","redshift_filter":"None","realization_filter":"realization>8"} ,
+	"power_spectrum" : {"features_dbname":"cross_spectra.sqlite","data_table":"features_fiducial","feature_filter":null,"redshift_filter":null,"realization_filter":"realization>8"} ,
 	"moments" : {"feature_filter":"sigma0,S1,K2","redshift_filter":"b1>3","realization_filter":"realization<10"} ,
 	
 	"realizations_for_covariance" : 16000,

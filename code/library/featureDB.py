@@ -49,8 +49,9 @@ def process_realization(realization,db_type,map_specs,sub_catalog,measurer,**kwa
 	"""
 
 	#Construct file names of shear and position catalogs
-	position_files = [ "/global/homes/a/apetri/LSST100Parameters/data/positions_bin{0}.fits".format(n) for n in range(1,len(map_specs["zbins"])+1) ]
-	shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,len(map_specs["zbins"])+1) ]
+	position_file_path = os.path.join(sub_catalog.environment.storage,sub_catalog.cosmo_id,sub_catalog.geometry_id,sub_catalog.name)
+	position_files = [ os.path.join(position_file_path,"positions_bin{0}.fits".format(n)) for n in range(1,6) ]
+	shear_files = [ os.path.join(sub_catalog.storage_subdir,"WLshear_positions_bin{0}_{1:04d}r.fits".format(n,realization)) for n in range(1,6) ]
 
 	#Construct the kappa maps
 	maps = db_type.make_maps(shear_files,position_files,**map_specs)
@@ -426,8 +427,6 @@ class FisherDatabase(Database):
 		pcov = query_row.values.reshape((len(parameters),)*2)
 		return self._constructor_ensemble(pcov,index=parameters,columns=parameters)
 
-	
-
 	#Retrieve the variance of a single parameter for a single feature_label
 	def query_parameter_simple(self,feature_label,table_name="pcov",parameter="w"):
 
@@ -454,6 +453,36 @@ class FisherDatabase(Database):
 
 		#Return the number of components and corresponding parameter variance
 		return query_results["bins"].values.astype(np.int),query_results["-".join([parameter,parameter])].values
+
+
+	#Retrieve the best fit parameters to the data
+	def query_parameter_fit(self,feature_label,table_name="pcov",parameters=["Om","w"]):
+
+		"""
+		Retrieve the variance of a single parameter for a single feature_label
+
+		:param feature_label: name of the feature to retrieve
+		:type feature_label: str.
+
+		:param table_name: name of the table to query
+		:type table_name: str.
+
+		:param parameters: parameters to retrieve
+		:type parameter: list.
+
+		:returns: parameters best fit 
+		:rtype: Ensemble
+
+		"""
+
+		#Build the SQL query and retrieve the results
+		sql_query = 'SELECT {0},bins FROM {1} WHERE feature_label="{2}"'.format(",".join(["{0}_fit".format(p) for p in parameters]),table_name,feature_label)
+		query_results = self.query(sql_query)
+
+		#Return the query
+		return query_results
+
+	######################################################################################################################################################################
 
 	#Plot shortcut by redshift
 	def plot_by_redshift(self,features,table_name,parameter,colors):
