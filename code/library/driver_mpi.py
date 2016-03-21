@@ -131,6 +131,9 @@ def photo_specs(specs,in2out_table):
 
 	#Cycle through features
 	for s in specs:
+
+		#Append to specs list
+		out_specs.append(json.loads(json.dumps(s)))
 		
 		#Update table names
 		for in_table in in2out_table:
