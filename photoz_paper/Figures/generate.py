@@ -43,35 +43,43 @@ def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",paramet
 	############
 
 	with FisherDatabase(db_name) as db:
-		pfit = db.query_parameter_fit(feature_label,table_name="shape_noise",parameters=parameters)
-		p1,p2 = [ pfit[parameters[n]+"_fit"].values for n in [0,1] ]
-		ax.scatter(p1,p2,s=pfit["bins"],color="black",label="No photo-z")
+		pfit = db.query_parameter_fit(feature_label,table_name="shape_noise_mocks",parameters=parameters)
+		p1f,p2f = [ pfit[parameters[n]+"_fit"].values for n in [0,1] ]
 
-	##############
-	#With photo-z#
-	##############
+	##########################
+	#With photo-z: optimistic#
+	##########################
 
 	with FisherDatabase(db_name) as db:
-		pfit = db.query_parameter_fit(feature_label,table_name="shape_noise_photoz",parameters=parameters)
+		pfit = db.query_parameter_fit(feature_label,table_name="shape_noise_mocks_photoz",parameters=parameters)
 		p1,p2 = [ pfit[parameters[n]+"_fit"].values for n in [0,1] ]
-		ax.scatter(p1,p2,s=pfit["bins"],color="red",label="With photo-z")
+		ax.scatter(p1-p1f,p2-p2f,color="red",label="With photo-z (optimistic)")
+
+	###########################
+	#With photo-z: pessimistic#
+	###########################
+
+	with FisherDatabase(db_name) as db:
+		pfit = db.query_parameter_fit(feature_label,table_name="shape_noise_mocks_photoz_pessimistic",parameters=parameters)
+		p1,p2 = [ pfit[parameters[n]+"_fit"].values for n in [0,1] ]
+		ax.scatter(p1-p1f,p2-p2f,color="blue",label="With photo-z (pessimistic)")
 
 	#Get axes bounds
-	xlim = ax.get_xlim()
-	ylim = ax.get_ylim()
+	xlim = np.abs(np.array(ax.get_xlim())).max()
+	ylim = np.abs(np.array(ax.get_ylim())).max()
 
 	#Show the fiducial value
-	ax.plot(np.ones(100)*par2value[parameters[0]],np.linspace(*(ylim+(100,))),linestyle="-",color="green")
-	ax.plot(np.linspace(*(xlim+(100,))),np.ones(100)*par2value[parameters[1]],linestyle="-",color="green")
+	ax.plot(np.ones(100)*par2value[parameters[0]],np.linspace(-ylim,ylim,100),linestyle="-",color="green")
+	ax.plot(np.linspace(-xlim,xlim,100),np.ones(100)*par2value[parameters[1]],linestyle="-",color="green")
 
 	#Set the axes bounds
-	ax.set_xlim(xlim)
-	ax.set_ylim(ylim)
+	ax.set_xlim(-xlim,xlim)
+	ax.set_ylim(-ylim,ylim)
 
 	#Legends
-	ax.set_xlabel(par2label[parameters[0]],fontsize=fontsize)
-	ax.set_ylabel(par2label[parameters[1]],fontsize=fontsize)
-	ax.legend()
+	ax.set_xlabel(r"$\delta$"+par2label[parameters[0]],fontsize=fontsize)
+	ax.set_ylabel(r"$\delta$"+par2label[parameters[1]],fontsize=fontsize)
+	ax.legend(loc="upper left")
 
 	#Save figure
 	fig.savefig("photoz_bias_{0}.".format(feature_label)+cmd_args.type)
