@@ -134,12 +134,13 @@ def photo_specs(specs,in2out_table):
 		
 		#Update table names
 		for in_table in in2out_table:
+			
 			for feature in s["features"]:
 				s[feature]["data_table"] = in_table
 			s["output_table_name"] = in2out_table[in_table]
 
-		#Append to specs list
-		out_specs.append(json.loads(json.dumps(s)))
+			#Append to specs list
+			out_specs.append(json.loads(json.dumps(s)))
 
 	#Return to user
 	return out_specs
