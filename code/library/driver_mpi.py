@@ -122,6 +122,57 @@ def measure_main(measurer_kwargs,default_db_name):
 		measure(batch=batch,cosmo_id=cosmo_id,model_n=int(n),catalog2table=catalog2table,**driver_measurer_kwargs)
 
 
+#Propagate the specifications through the run with photoz errors
+def photo_specs(specs,in2out_table):
+
+	if isinstance(specs,dict):
+		specs = [specs]
+	out_specs = list()
+
+	#Cycle through features
+	for s in specs:
+		
+		#Update table names
+		for in_table in in2out_table:
+			for feature in s["features"]:
+				s[feature]["data_table"] = in_table
+			s["output_table_name"] = in2out_table[in_table]
+
+		#Append to specs list
+		out_specs.append(json.loads(json.dumps(s)))
+
+	#Return to user
+	return out_specs
+
+#Create a list of single redshift features out of a tomographic one
+def split_redshifts(specs,redshift_index=range(5)):
+
+	#List of splittings
+	splitted_specs = list()
+
+	#Cycle over features and redshift bin
+	for zi in redshift_index:
+		
+		#Deep copy of the original dictionary
+		specs_redshift = dict()
+		for key in ["dbname","table_name","feature_label_root","feature_label_format","features","realizations_for_covariance","realizations_for_data","pca_components"]:
+			specs_redshift[key] = specs[key]
+
+		#Append redshift label to name
+		specs_redshift["feature_label_root"] += "_z{0}".format(zi)
+		
+		#Update features with redshift filter
+		for feature in specs["features"]:
+			specs_redshift[feature] = dict((("feature_filter",specs[feature]["feature_filter"]),("realization_filter",specs[feature]["realization_filter"])))
+			specs_redshift[feature]["redshift_filter"] = " AND ".join(["{0}={1}".format(l,zi) for l in getattr(settings,feature).redshift_labels])
+	
+		#Append to list
+		splitted_specs.append(specs_redshift)
+
+	#Return to user
+	return splitted_specs
+
+
 ################################################
 #######Cosmological constraints driver##########
 ################################################
