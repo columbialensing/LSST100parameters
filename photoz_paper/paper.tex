@@ -23,6 +23,9 @@
 \newcommand{\bb}[1]{\mathbf{#1}}
 \newcommand{\bbh}[1]{\mathbf{\hat{#1}}}
 \newcommand{\h}[1]{\hat{#1}}
+
+\newcommand{\ttt}[1]{\texttt{#1}}
+
 \newcommand\lsim{\mathrel{\rlap{\lower4pt\hbox{\hskip1pt$\sim$}}
         \raise1pt\hbox{$<$}}}
 \newcommand\gsim{\mathrel{\rlap{\lower4pt\hbox{\hskip1pt$\sim$}}
@@ -50,7 +53,7 @@
 \label{firstpage}
 
 \begin{abstract}
-
+Weak Gravitational Lensing is becoming a popular technique to constrain cosmological parameters, such as the Dark Energy equation of state $w$. When analyzing galaxy surveys, redshift information has proven to be a valuable addition to angular shear correlations. We forecast parameter constraints on the triplet $(\Omega_m,w,\sigma_8)$ for a LSST like galaxy photometric survey, using tomography of the shear-shear power spectrum, convergence peak counts and higher convergence moments. We evaluate the effect of uncorrected photometric redshift systematics on parameter constraints. We show that different statistics lead to different bias directions in parameter space, leaving a window open for self--calibration. 
 \end{abstract}
 
 
@@ -64,20 +67,55 @@
 
 \section{Introduction}
 %
-
-\citep{Huterer2006}
+This work is organized as follows: we give an outline of the shear simulations we use in this work, followed by descriptions of the convergence reconstruction procedure and forward modeling of galaxy shape and redshift systematics. We then give an overview of the parameter inferences technique we used to forecast constraints on cosmology. We then discuss the main results of this work and present our conclusions as well as prospects for future work.  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% METHODS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Methods}
 
 \subsection{Cosmic shear simulations}
+\label{sec:shearsim}
+We review the procedure used for generating mock shear catalogs. We consider a fiducial flat $\Lambda$CDM universe with $(h,\Omega_m,\Omega_\Lambda,\Omega_b,w,\sigma_8,n_s)=(0.72,0.26,0.74,0.046,-1,0.8,0.96)$. We examine different variations of the $\bb{p}=(\Omega_m,w,\sigma_8)$ triplet and run one $N$--body simulation for each choice of $\bb{p}$, using the public code \ttt{Gadget2} \citep{Gadget2}. The simulations have a comoving box size of $L_b=260\,{\rm Mpc}/h$ and contain $512^3$ dark matter particles, which correspond to a mass resolution of $M_p\approx 10^{10}M_{\rm sun}$ per particle. The three dimensional outputs of the $N$--body simulations are sliced in sequences of two dimensional lenses $120 \,{\rm Mpc}$ thick, which are lined up perpendicular to the line of sight between the observer on Earth and a source at redshift $z_s$. We make use of the multi--lens--plane algorithm \citep{RayTracingJain,RayTracingHartlap} to trace the deflections of light rays originating at $z=0$ through the system of lenses until $z$. To accomplish this task, we make use of the \ttt{LensTools} \citep{LensTools-ASCL,LensTools-paper} implementation of the multi--lens--plane algorithm. An observed galaxy position $\pmb{\theta}$ on the sky today corresponds to a real galaxy angular position $\pmb{\beta}(\pmb{\theta},z_s)$, which can be calculated using the \ttt{LensTools} pipeline by solving the lensing ODE up to redshift $z_s$. The Jacobian of $\pmb{\beta}(\pmb{\theta},z_s)$ is a $2\times 2$ matrix that contains information about the cosmic shear field at $\pmb{\theta}$ integrated along the line of sight. 
+%
+\begin{equation}
+\label{meth:sheareqn}
+\frac{\partial\beta_i(\pmb{\theta},z_s)}{\partial \theta_j} = 
+\begin{pmatrix}
+1-\kappa(\pmb{\theta})-\gamma^1(\pmb{\theta}) & -\gamma^2(\pmb{\theta}) \\
+-\gamma^2(\pmb{\theta}) & 1-\kappa(\pmb{\theta})+\gamma^1(\pmb{\theta})\\
+\end{pmatrix}
+\end{equation}  
+%
+We simulate $N_g = 10^6$ random galaxy positions $\{\pmb{\theta}\}$ distributed uniformly in a field of view of size $\Omega_{\rm FOV}=(3.5{\rm deg})^2$, which correspond to a galaxy angular density of $n_g=22\,\rm{arcmin}^{-2}$. The galaxy have a distribution in redshift which mimics the one expected in the LSST survey
+\begin{equation}
+n(z) = n_0\left(\frac{z}{z_0}\right)^2\exp\left(-\frac{z}{z_0}\right)
+\end{equation}  
+%
+with $z_0=0.3$ and $n_0$ a normalization constant fixed so that $n(z)$ integrates to the total number of galaxies $N_g$. For each galaxy we compute the cosmic shear at $\pmb{\theta}$ using equation (\ref{meth:sheareqn}), producing a shear catalog $\{\pmb{\gamma}\}$. Different random realizations of a shear catalog $\{\pmb{\gamma}\}_r$ can be obtained rotating and periodically shifting the Large Scale Structure in the $N$--body snapshots according to the procedure explained in \citep{PetriVariance}. We produce $N_r=16000$ pseudo--independent realizations of the shear catalog $\{\pmb{\gamma}\}$. These shear realization cover the total survey area of LSST 10 times.
+We repeat the above procedure for 100 different combinations of the parameter triplet $\bb{p}$, sampled according to a Latin hypercube scheme. The sampling procedure is the same described in \citep{CFHTMink,CFHTPeaks}. For each of these simulations, the $N$--body initial conditions are generated using the same random seed. In addition to this simulations, we produce simulated shear catalogs for a fiducial $\Lambda$CDM universe with $\bb{p}_0=(0.26,-1,0.8)$. In this case the randomization procedure is based on 5 independent $N$--body simulations, and the same number of pseudo--independent catalog realizations is produced.    
+
+\subsection{Forward modeling of systematics}
+We give an overview of the shear systematics included in this work. The measured galaxy ellipticity $\pmb{\epsilon}$ is an estimate of the cosmic shear $\pmb{\gamma}$ due to Large Scale Structure if the non--lensed galaxy shape is a circle. If this assumption is relaxed, the measured galaxy ellipticity $\pmb{\epsilon}_{\rm m}$ can be modeled as a cosmic shear term plus a noise term \citep{wlreview}
+\begin{equation}
+\pmb{\epsilon}_{\rm m} = \pmb{\gamma} + \pmb{\epsilon}_{\rm n}
+\end{equation} 
+%
+where $\pmb{\epsilon}_{\rm n}$ is a random Gaussian variable with zero mean and redshift dependent variance $\sigma_n(z)=0.15+0.035z$. This is equivalent to say that the cosmic shear inferred from ellipticity observations $\pmb{\gamma}_{\rm m}$ can be written as the sum of the true cosmic shear plus a noise term $\pmb{\gamma}_{\rm n}$ with the same statistical properties as $\pmb{\epsilon}_{\rm n}$. 
+We add independent random realizations of the shape noise $\pmb{\epsilon}_{\rm n}$ to each of the $N_r$ shear catalogs. Each shape noise realization is generated with a different random seed. The same random seeds are used to generate shape noise catalogs across simulations with different cosmological parameters $\bb{p}$. 
+
+In addition to shape noise contributions to the observed galaxy ellipticity we consider photometric redshift errors as an additional contamination source in the simulated catalogs. In photometric surveys such as LSST, the source redshift $z_s$ is estimated measuring the source luminosity in a finite small set of optical frequency bands. Using this compressed luminosity information rather than the full spectrum introduces biases in redshift estimation. Forward modeling of the cosmic shear using the procedure described in \S~\ref{sec:shearsim}, as well as the shape noise contributions, assume a correct redshift distributions $n(z)$. An incorrect binning of observed galaxy redshifts according to the inferred photometric distribution $n_p(z_p)$ can propagate to redshift measurement errors all the way to cosmological parameter constraints when the latter take advantage of redshift tomography. One of the goals of this work is to evaluate the size of this effect, assuming photometric redshift errors (photo-$z$) are left uncorrected. We model effect of photo-$z$ errors as a constant bias term $b_{\rm ph}(z_s)$ plus a random Gaussian component with variance $\sigma_{\rm ph}(z_s)$
+\begin{equation}
+\label{meth:photoz-correction}
+z_p(z_s) = z_s + b_{\rm ph}(z_s) + \sigma_{\rm ph}(z_s)\mathcal{N}(0,1)   
+\end{equation}
+%
+where $\mathcal{N}(0,1)$ is the standard normal distribution. We bin the $N_g$ galaxies in our simulated catalogs in 5 redshift bins. The bin sizes are adjusted so that each of them contains the same number of galaxies. We generate mock observations by applying an independent random realization of the photo-$z$ correction (\ref{meth:photoz-correction}) to each catalog realization in the fiducial cosmology $\bb{p}_0$ and by re--binning the galaxies according to their photometric redshifts $z_p$. In the remainder of the paper we use the following notation: we indicate a shear realization $r$ in cosmology $\bb{p}$ with shape noise added as $\h{\pmb{\gamma}}_r(\pmb{\theta}_g,z_g;\bb{p})$, and we indicate a mock observation as $\h{\pmb{\gamma}}_{\rm obs}(\pmb{\theta}_g,z_g)$.           
 
 \subsection{Convergence reconstruction}
 
-\subsection{Forward modeling of systematics}
-
 \subsection{Parameter inference}
+
+\subsection{Dimensionality reduction}
 
 %%%%%%%%%%%%%%%%%%%%%%% RESULTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
