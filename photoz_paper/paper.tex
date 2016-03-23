@@ -73,6 +73,8 @@ This work is organized as follows: we give an outline of the shear simulations w
 
 \section{Methods}
 
+%%%%%%%%
+
 \subsection{Cosmic shear simulations}
 \label{sec:shearsim}
 We review the procedure used for generating mock shear catalogs. We consider a fiducial flat $\Lambda$CDM universe with $(h,\Omega_m,\Omega_\Lambda,\Omega_b,w,\sigma_8,n_s)=(0.72,0.26,0.74,0.046,-1,0.8,0.96)$. We examine different variations of the $\bb{p}=(\Omega_m,w,\sigma_8)$ triplet and run one $N$--body simulation for each choice of $\bb{p}$, using the public code \ttt{Gadget2} \citep{Gadget2}. The simulations have a comoving box size of $L_b=260\,{\rm Mpc}/h$ and contain $512^3$ dark matter particles, which correspond to a mass resolution of $M_p\approx 10^{10}M_{\rm sun}$ per particle. The three dimensional outputs of the $N$--body simulations are sliced in sequences of two dimensional lenses $120 \,{\rm Mpc}$ thick, which are lined up perpendicular to the line of sight between the observer on Earth and a source at redshift $z_s$. We make use of the multi--lens--plane algorithm \citep{RayTracingJain,RayTracingHartlap} to trace the deflections of light rays originating at $z=0$ through the system of lenses until $z$. To accomplish this task, we make use of the \ttt{LensTools} \citep{LensTools-ASCL,LensTools-paper} implementation of the multi--lens--plane algorithm. An observed galaxy position $\pmb{\theta}$ on the sky today corresponds to a real galaxy angular position $\pmb{\beta}(\pmb{\theta},z_s)$, which can be calculated using the \ttt{LensTools} pipeline by solving the lensing ODE up to redshift $z_s$. The Jacobian of $\pmb{\beta}(\pmb{\theta},z_s)$ is a $2\times 2$ matrix that contains information about the cosmic shear field at $\pmb{\theta}$ integrated along the line of sight. 
@@ -86,6 +88,7 @@ We review the procedure used for generating mock shear catalogs. We consider a f
 \end{pmatrix}
 \end{equation}  
 %
+The quantities that appear in equation (\ref{meth:sheareqn}) are the convergence $\kappa$, which is the source magnification due to lensing, and the cosmic shear $\pmb{\gamma}$, which is a measurement of the source ellipticity due to lensing from Large Scale Structure, assuming the non lensed shape is a circle. 
 We simulate $N_g = 10^6$ random galaxy positions $\{\pmb{\theta}\}$ distributed uniformly in a field of view of size $\Omega_{\rm FOV}=(3.5{\rm deg})^2$, which correspond to a galaxy angular density of $n_g=22\,\rm{arcmin}^{-2}$. The galaxy have a distribution in redshift which mimics the one expected in the LSST survey
 \begin{equation}
 n(z) = n_0\left(\frac{z}{z_0}\right)^2\exp\left(-\frac{z}{z_0}\right)
@@ -94,6 +97,8 @@ n(z) = n_0\left(\frac{z}{z_0}\right)^2\exp\left(-\frac{z}{z_0}\right)
 with $z_0=0.3$ and $n_0$ a normalization constant fixed so that $n(z)$ integrates to the total number of galaxies $N_g$. For each galaxy we compute the cosmic shear at $\pmb{\theta}$ using equation (\ref{meth:sheareqn}), producing a shear catalog $\{\pmb{\gamma}\}$. Different random realizations of a shear catalog $\{\pmb{\gamma}\}_r$ can be obtained rotating and periodically shifting the Large Scale Structure in the $N$--body snapshots according to the procedure explained in \citep{PetriVariance}. We produce $N_r=16000$ pseudo--independent realizations of the shear catalog $\{\pmb{\gamma}\}$. These shear realization cover the total survey area of LSST 10 times.
 We repeat the above procedure for 100 different combinations of the parameter triplet $\bb{p}$, sampled according to a Latin hypercube scheme. The sampling procedure is the same described in \citep{CFHTMink,CFHTPeaks}. For each of these simulations, the $N$--body initial conditions are generated using the same random seed. In addition to this simulations, we produce simulated shear catalogs for a fiducial $\Lambda$CDM universe with $\bb{p}_0=(0.26,-1,0.8)$. In this case the randomization procedure is based on 5 independent $N$--body simulations, and the same number of pseudo--independent catalog realizations is produced.    
 
+%%%%%%%%
+
 \subsection{Forward modeling of systematics}
 We give an overview of the shear systematics included in this work. The measured galaxy ellipticity $\pmb{\epsilon}$ is an estimate of the cosmic shear $\pmb{\gamma}$ due to Large Scale Structure if the non--lensed galaxy shape is a circle. If this assumption is relaxed, the measured galaxy ellipticity $\pmb{\epsilon}_{\rm m}$ can be modeled as a cosmic shear term plus a noise term \citep{wlreview}
 \begin{equation}
@@ -101,19 +106,100 @@ We give an overview of the shear systematics included in this work. The measured
 \end{equation} 
 %
 where $\pmb{\epsilon}_{\rm n}$ is a random Gaussian variable with zero mean and redshift dependent variance $\sigma_n(z)=0.15+0.035z$. This is equivalent to say that the cosmic shear inferred from ellipticity observations $\pmb{\gamma}_{\rm m}$ can be written as the sum of the true cosmic shear plus a noise term $\pmb{\gamma}_{\rm n}$ with the same statistical properties as $\pmb{\epsilon}_{\rm n}$. 
-We add independent random realizations of the shape noise $\pmb{\epsilon}_{\rm n}$ to each of the $N_r$ shear catalogs. Each shape noise realization is generated with a different random seed. The same random seeds are used to generate shape noise catalogs across simulations with different cosmological parameters $\bb{p}$. 
+We add independent random realizations of the shape noise $\pmb{\gamma}_{\rm n}$ to each of the $N_r$ shear catalogs. Each shape noise realization is generated with a different random seed. The same random seeds are used to generate shape noise catalogs across simulations with different cosmological parameters $\{\bb{p}_i\}$.
 
-In addition to shape noise contributions to the observed galaxy ellipticity we consider photometric redshift errors as an additional contamination source in the simulated catalogs. In photometric surveys such as LSST, the source redshift $z_s$ is estimated measuring the source luminosity in a finite small set of optical frequency bands. Using this compressed luminosity information rather than the full spectrum introduces biases in redshift estimation. Forward modeling of the cosmic shear using the procedure described in \S~\ref{sec:shearsim}, as well as the shape noise contributions, assume a correct redshift distributions $n(z)$. An incorrect binning of observed galaxy redshifts according to the inferred photometric distribution $n_p(z_p)$ can propagate to redshift measurement errors all the way to cosmological parameter constraints when the latter take advantage of redshift tomography. One of the goals of this work is to evaluate the size of this effect, assuming photometric redshift errors (photo-$z$) are left uncorrected. We model effect of photo-$z$ errors as a constant bias term $b_{\rm ph}(z_s)$ plus a random Gaussian component with variance $\sigma_{\rm ph}(z_s)$
+%ADD Simulation specifications 
+
+In addition to shape noise contributions to the observed galaxy ellipticity we consider photometric redshift errors as an additional contamination source in the simulated catalogs. In photometric surveys such as LSST, the source redshift $z_s$ is estimated measuring the source luminosity in a finite small set of optical frequency bands. Using this compressed luminosity information rather than the full spectrum introduces biases in redshift estimation. Forward modeling of the cosmic shear using the procedure described in \S~\ref{sec:shearsim}, as well as the shape noise contributions, assume a correct redshift distributions $n(z)$. An incorrect binning of observed galaxy redshifts according to the measured photometric distribution $n_p(z_p)$ can propagate the redshift measurement errors all the way to cosmological parameter constraints if the latter take advantage of redshift tomography. One of the goals of this work is to evaluate the size of this effect, assuming photometric redshift errors (photo-$z$) are left uncorrected. We model effect of photo-$z$ errors as a constant bias term $b_{\rm ph}(z_s)$ plus a random Gaussian component with variance $\sigma_{\rm ph}(z_s)$
 \begin{equation}
 \label{meth:photoz-correction}
 z_p(z_s) = z_s + b_{\rm ph}(z_s) + \sigma_{\rm ph}(z_s)\mathcal{N}(0,1)   
 \end{equation}
 %
-where $\mathcal{N}(0,1)$ is the standard normal distribution. We bin the $N_g$ galaxies in our simulated catalogs in 5 redshift bins. The bin sizes are adjusted so that each of them contains the same number of galaxies. We generate mock observations by applying an independent random realization of the photo-$z$ correction (\ref{meth:photoz-correction}) to each catalog realization in the fiducial cosmology $\bb{p}_0$ and by re--binning the galaxies according to their photometric redshifts $z_p$. In the remainder of the paper we use the following notation: we indicate a shear realization $r$ in cosmology $\bb{p}$ with shape noise added as $\h{\pmb{\gamma}}_r(\pmb{\theta}_g,z_g;\bb{p})$, and we indicate a mock observation as $\h{\pmb{\gamma}}_{\rm obs}(\pmb{\theta}_g,z_g)$.           
+where $\mathcal{N}(0,1)$ is the standard normal distribution. We bin the $N_g$ galaxies in our simulated catalogs in 5 redshift bins $\bar{z}_b$, $b=1...5$. Several models have been proposed in the literature for the photometric bias $b_{\rm ph}(z_s)$ (see for example \citep{Huterer2006}) and variance $\sigma_{\rm ph}(z_s)$ (see for example \citep{LSSTSciBook}). We make use of the photo-$z$ bias and variance values contained in the LSST Science Book \citep{LSSTSciBook}. The bin sizes are adjusted so that each of them contains the same number of galaxies. We generate mock observations by applying an independent random realization of the photo-$z$ correction (\ref{meth:photoz-correction}) to each catalog realization in the fiducial cosmology $\bb{p}_0$ and by re--binning the galaxies according to their photometric redshifts $z_p$. In the remainder of the paper we use the following notation: we indicate a shear realization $r$ in cosmology $\bb{p}$ with shape noise added as $\h{\pmb{\gamma}}_r(\pmb{\theta}_g,z_g;\bb{p})$, and we indicate a mock observation as $\h{\pmb{\gamma}}_{\rm obs}(\pmb{\theta}_g,z_g)$.           
+
+%%%%%%%%
 
 \subsection{Convergence reconstruction}
+In this paragraph we describe the procedure we used to construct convergence maps $\kappa$ from the simulated shear catalogs $\pmb{\gamma}$. We consider a two dimensional square pixel grid of area $\theta_{\rm FOV}^2$ and with 512 pixel per side. This correspond to a linear pixel resolution of $0.5 \rm{arcmin}$. We assign a shear value $\pmb{\gamma}(\pmb{\theta}_p,\bar{z}_b)$ to each pixel $\pmb{\theta}_p$ according to the following procedure
+\begin{equation}
+\pmb{\gamma}(\pmb{\theta}_p,\bar{z}_b) = \frac{\sum_{g=1}^{N_g}\pmb{\gamma}(\pmb{\theta}_g,z_g)W(\pmb{\theta}_g,\pmb{\theta}_p;z_g,\bar{z}_b)}{\sum_{g=1}^{N_g}W(\pmb{\theta}_g,\pmb{\theta}_p;z_g,\bar{z}_b)}
+\end{equation}   
+%
+We chose a top--hat window function
+\begin{equation}
+W(\pmb{\theta}_g,\pmb{\theta}_p;z_g,\bar{z}_b) = 
+\begin{cases}
+1 \,\,\,\,{\rm if}\,\,\,\, \pmb{\theta}_g\in\pmb{\theta}_p,z_g\in\bar{z}_b \\
+0 \,\,\,\,{\rm otherwise}
+\end{cases}
+\end{equation} 
+%
+The convergence $\kappa(\pmb{\theta}_p)$ can be reconstructed from the $E$--mode of the shear field, which is evaluated from the Fourier Transform of the pixelized shear $\pmb{\gamma}(\pmb{\theta}_p,\bar{z}_b)$
+\begin{equation}
+\label{meth:psdefinition}
+\tilde\kappa(\pmb{\ell},\bar{z}_b) = \left(\frac{\tilde{\gamma}^1(\pmb{\ell},\bar{z}_b)(\ell_x^2-\ell_y^2)+2\ell_1\ell_2\tilde{\gamma}^2(\pmb{\ell},\bar{z}_b)}{\ell_x^2+\ell_y^2}\right) e^{-\frac{\ell^2\theta_G^2}{2}}
+\end{equation}
+%
+We chose the Gaussian filter smoothing scale $\theta_G=0.5\,{\rm arcmin}$ to correspond to the linear pixel resolution. Inverting the Fourier Transform yields the pixelized map $\kappa(\pmb{\theta}_p,\bar{z}_b)$. We apply this procedure to both the shear realizations $\h{\pmb{\gamma}}_r(\pmb{\theta}_g,z_g;\bb{p})$ and the mock observations $\h{\pmb{\gamma}}_{\rm obs}(\pmb{\theta}_g,z_g)$, yielding convergence realizations $\h{\kappa}_r(\pmb{\theta}_p,\bar{z}_b;\bb{p})$ and mock convergence observations $\h{\kappa}_{\rm obs}(\pmb{\theta}_p,\bar{z}_b)$. 
+
+We measure a variety of summary statistics from the pixelized convergence maps, which will then be used to forecast parameter constraints and biases. We consider three kinds of summary statistics, namely the $\kappa$ tomographic power spectrum $P^{\kappa\kappa}(\ell,\bar{z}_b,\bar{z}_{b'})$, the tomographic peak counts $n_{\rm pk}(\nu,\bar{z}_b)$ and a set of $\kappa$ moments $\pmb{\mu}(\bar{z}_b)$. The tomographic power spectrum is defined as 
+\begin{equation}
+{\rm Re}\left(\langle\tilde{\kappa}(\pmb{\ell},\bar{z}_b)\tilde{\kappa}(\pmb{\ell}',\bar{z}_{b'})\rangle\right) = (2\pi)^2\delta_D(\pmb{\ell}+\pmb{\ell}')P^{\kappa\kappa}(\ell,\bar{z}_b,\bar{z}_{b'})
+\end{equation}
+%
+Because the $\kappa$ field is statistically isotropical, the expectation value $\langle\rangle$, for each realization $r$, is taken over all the modes $\pmb{\ell}$ which have the same magnitude $\ell=\vert\pmb{\ell}\vert$. The peak count statistic $n_{\rm pk}(\nu,\bar{z}_b)$ is defined as the number of the $\kappa$ local maxima of a certain height $\kappa_{\rm max}=\nu\sigma_0$, where $\sigma_0$ is the $\kappa$ standard deviation over pixels. The $\kappa$ moments $\pmb{\mu}(\bar{z}_b)$ are defined as follows
+%
+\begin{equation}
+\label{meth:momdef}
+\begin{matrix}
+\pmb{\mu} = (\pmb{\mu}_2,\pmb{\mu}_3,\pmb{\mu}_4) \\ \\
+\pmb{\mu}_2 = (\langle\kappa^2\rangle,\langle\vert\nabla\kappa\vert^2\rangle) \\ \\
+\pmb{\mu}_3 = (\langle\kappa^3\rangle,\langle\kappa\vert\nabla\kappa\vert^2\rangle,\langle\kappa^2\nabla^2\kappa\rangle) \\ \\
+\pmb{\mu}_4 = (\langle\kappa^4\rangle_c,\langle\kappa^2\vert\nabla\kappa\vert^2\rangle_c,\langle\kappa^3\nabla^2\kappa\rangle_c,\langle\vert\nabla\kappa\vert^4\rangle_c)
+\end{matrix}
+\end{equation}
+%
+In equation (\ref{meth:momdef}) the gradients $\nabla$ are evaluated using finite differences between $\kappa$ values at neighboring pixels and the expectation values $\langle\rangle$ for each realization $r$ are taken over the $512^2$ pixels in the map. The subscript $c$ indicates that we take only the connected parts of the quartic $\kappa$ moments. In the definition of the peak counts and convergence moments we omitted the redshift index $\bar{z}_b$ for notational simplicity, and also because both peak counts and moments do not contain cross redshift information unlike the power spectrum defined in equation (\ref{meth:psdefinition}). In the next paragraph we describe the statistical methods we use to infer cosmological parameter estimates $\bbh{p}$ from mock observations $\h{\kappa}_{\rm obs}(\pmb{\theta}_p,\bar{z}_b)$ using the summary statistics $P^{\kappa\kappa}(\ell,\bar{z}_b,\bar{z}_{b'})$, $n_{\rm pk}(\nu,\bar{z}_b)$, $\pmb{\mu}(\bar{z}_b)$.   
+
+%%%%%%%%
 
 \subsection{Parameter inference}
+We adopt a Bayesian framework to forecast parameter constraints. We indicate as $\bb{d}$ a summary statistic vector (which can be any of $P^{\kappa\kappa},n_{\rm pk},\pmb{\mu}$ or a combination of the former). We label $\bb{d}(\bb{p})$ the sample mean of $\bb{d}$ over the $N_r=16000$ simulated realizations in cosmology $\bb{p}$ and we label $\bbh{d}_r$ the summary statistic measured in realization $r$ of the fiducial cosmology $\bb{p}_0$. Both $\bb{d}(\bb{p}),\bbh{d}_r$ are measured taking galaxy shape noise into account. We further label $\bbh{d}_{\rm obs}$ the summary statistic measured in a mock observation in which $\kappa$ has been measured taking photo-$z$ errors into account. $\bbh{d}_{\rm obs}$ is measured averaging a random sample of $N_{\rm FOV}=1600$ realizations of the fiducial cosmology with photo-$z$ errors added. This number has been chosen to mimic the survey are of LSST $\Omega_{\rm LSST}=N_{\rm FOV}\theta_{\rm FOV}^2$. Assuming no prior knowledge of the parameters $\bb{p}$, we can write the parameter likelihood $\mathcal{L}$ given the observation $\bbh{d}_{\rm obs}$ using the Bayes theorem
+%
+\begin{equation}
+\label{meth:paramlikelihood}
+-2\log\mathcal{L}(\bb{p}\vert \bbh{d}_{\rm obs}) = (\bbh{d}_{\rm obs} - \bb{d}(\bb{p}))^T\bb{C}^{-1}(\bbh{d}_{\rm obs} - \bb{d}(\bb{p}))
+\end{equation}  
+%
+The parameter likelihood (\ref{meth:paramlikelihood}) can be evaluated at every point $\bb{p}$ in parameter space by interpolating $\bb{d}(\bb{p})$ between simulation points $\{\bb{p}_i\}$ using a Radial Basis Function (RBF) interpolation (see \citep{CFHTMink,LensTools-paper}). $\bb{C}$ is the $\bb{d}$ covariance matrix and is assumed to be $\bb{p}$--independent. In practice we replace $\bb{C}$ with its estimated value $\bbh{C}$ from $N_r=16000$ realizations of the summary statistics $\bbh{d}_r$ in the fiducial cosmology $\bb{p}_0$ without photo-$z$ errors
+%
+\begin{equation}
+\bbh{d}_{\rm mean} = \frac{1}{N_r}\sum_{r=1}^{N_r}\bbh{d}_r 
+\end{equation}
+%
+\begin{equation}
+\bbh{C} = \frac{1}{N_r-1}\sum_{r=1}^{N_r} (\bbh{d}_r-\bbh{d}_{\rm mean})(\bbh{d}_r-\bbh{d}_{\rm mean})^T
+\end{equation} 
+%
+Cosmological parameter values $\bbh{p}$ can be inferred from equation (\ref{meth:paramlikelihood}) by looking at the peak of the likelihood. Parameter errors $\Delta\bbh{p}$ can be inferred from the likelihood confidence contours. Approximate estimates of $\bbh{p},\Delta \bbh{p}$ can be obtained approximating the model statistic $\bb{d}(\bb{p})$ dependency on parameters as linear in $\bb{p}$ provided $\bb{p}$ is not too far from the fiducial model $\bb{p}_0$
+\begin{equation}
+\label{meth:linapprox}
+\bb{d}(\bb{p}) = \bb{d}(\bb{p}_0) + \bb{M}(\bb{p}-\bb{p}_0) + O(\vert\bb{p}-\bb{p}_0\vert^2)
+\end{equation} 
+%
+Where we defined $(\bb{M})_{i\alpha}=(\partial d_i(\bb{p})/\partial p_\alpha)_{\bb{p}_0}$ as the statistic first derivative with respect to cosmology. This approximation allows for a fast estimate of $\bbh{p}$ in terms of $\bbh{d}_{\rm obs}$
+\begin{equation}
+\bbh{p} = (\bb{M}^T\bbh{\Psi}\bb{M})^{-1}\bb{M}^T\bbh{\Psi}(\bbh{d}_{\rm obs}-\bb{d}(\bb{p}_0))
+\end{equation}
+%
+Here we indicated $\bbh{\Psi}=\bbh{C}^{-1}$ as the summary statistic precision matrix. With the linear approximation (\ref{meth:linapprox}) the parameter likelihood (\ref{meth:paramlikelihood}) is a multivariate Gaussian in $\bb{p}$ and its width $\bbh{\Sigma}$ can be estimated as 
+\begin{equation}
+(\bbh{\Sigma})_{\alpha\beta} = -\left(\frac{\partial^2 \log \mathcal{L}(\bb{p})}{\partial p_\alpha \partial p_\beta}\right)^{-1}_{\bb{p}_0} = ((\bb{M}^T\bbh{\Psi}\bb{M})^{-1})_{\alpha\beta}
+\end{equation}
+%
+The $1\sigma$ square parameter errors $\Delta \bbh{p}^2$ are the diagonal entries of $\bbh{\Sigma}$. This method of forecasting parameters takes the name of Fisher Matrix formalism. 
+%%%%%%%%
 
 \subsection{Dimensionality reduction}
 
