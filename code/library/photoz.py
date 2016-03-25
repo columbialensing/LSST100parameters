@@ -1,4 +1,5 @@
 from __future__ import division
+import cPickle as pkl
 import numpy as np
 from lenstools.utils.algorithms import step
 
@@ -35,20 +36,40 @@ def generate_gaussian_photoz_errors(z,intervals=None,bias=None,sigma=None,seed=N
 	if bias is not None:
 		
 		if type(bias) in [str,unicode]:
-			intervals,bias_values = parse_photoz_txt(bias)
+			
+			if bias.endswith(".pkl") or bias.endswith(".p"):
+				
+				#Deserialize bias calculation function and apply it to z
+				with open(bias,"r") as fp:
+					photoz_errors += pkl.load(fp)(z)
+
+			else:
+				intervals,bias_values = parse_photoz_txt(bias)
+				photoz_errors += step(z,intervals,bias_values)
+		
 		else:
 			intervals,bias_values = intervals,bias
-
-		photoz_errors += step(z,intervals,bias_values)
+			photoz_errors += step(z,intervals,bias_values)
+		
 
 	if sigma is not None:
 
 		if type(sigma) in [str,unicode]:
-			intervals,sigma_values = parse_photoz_txt(sigma)
+			
+			if sigma.endswith(".pkl") or sigma.endswith(".p"):
+				
+				#Deserialize sigma calculation function and apply it to z
+				with open(sigma,"r") as fp:
+					photoz_errors += np.random.randn(len(z))*pkl.load(fp)(z)
+
+			else:
+				intervals,sigma_values = parse_photoz_txt(sigma)
+				photoz_errors += np.random.randn(len(z))*step(z,intervals,sigma_values)
+		
 		else:
 			intervals,sigma_values = intervals,sigma
+			photoz_errors += np.random.randn(len(z))*step(z,intervals,sigma_values)
 
-		photoz_errors += np.random.randn(len(z))*step(z,intervals,sigma_values)
 	
 	#Retrurn to user
 	return photoz_errors
