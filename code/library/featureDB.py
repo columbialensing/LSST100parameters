@@ -516,27 +516,32 @@ class FisherDatabase(Database):
 		return fig,axes
 
 	#Plot shortcut by feature
-	def plot_by_feature(self,features,table_name,parameter):
+	def plot_by_feature(self,features,table_name,parameter,title=True):
 		fig,axes = plt.subplots(1,len(features),figsize=(8*len(features),8))
+
+		try:
+			len(axes)
+		except TypeError:
+			axes = [axes]
 		
 		#Plot single redshift
 		for nfeat,feature in enumerate(features):
 			for n in range(5):
 				b,p = self.query_parameter_simple(feature+"_z{0}".format(n),table_name,parameter)
 				axes[nfeat].plot(b,np.sqrt(p),label=r"$z\in[{0:.2f},{1:.2f}]$".format(*self.z_bins[n]))
-			axes[nfeat].set_title(feature)
+			axes[nfeat].set_title(r"${\rm " + feature.replace("_pca","").replace("_","\,\,") + r"}$",fontsize=22)
 
 		#Plot alltogether
 		for nfeat,feature in enumerate(features):
 			b,p = self.query_parameter_simple(feature,table_name,parameter)
-			axes[nfeat].plot(b,np.sqrt(p),label=r"$z$"+ " tomography")
+			axes[nfeat].plot(b,np.sqrt(p),label=r"$z$"+ r" ${\rm tomography}$")
 
 		#Axes labels
 		for ax in axes:
-			ax.set_xlabel("PCA components",fontsize=18)
-			ax.set_ylabel(r"$\Delta$" + parameter)
+			ax.set_xlabel(r"$N_c$",fontsize=22)
+			ax.set_ylabel(r"$\Delta$" + parameter,fontsize=22)
 			ax.set_yscale("log")
-			ax.legend(prop={"size":10})
+			ax.legend(prop={"size":16})
 
 		#Tight layout
 		fig.tight_layout()
