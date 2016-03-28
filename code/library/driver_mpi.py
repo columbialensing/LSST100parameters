@@ -171,7 +171,7 @@ def split_redshifts(specs,redshift_index=range(5)):
 		#Update features with redshift filter
 		for feature in specs["features"]:
 			specs_redshift[feature] = dict((("features_dbname",specs[feature]["features_dbname"]),("data_table",specs[feature]["data_table"]),("feature_filter",specs[feature]["feature_filter"]),("realization_filter",specs[feature]["realization_filter"])))
-			specs_redshift[feature]["redshift_filter"] = " AND ".join(["{0}={1}".format(l,zi) for l in getattr(settings,feature).redshift_labels])
+			specs_redshift[feature]["redshift_filter"] = " AND ".join(["{0}={1}".format(l,zi) for l in getattr(default_settings,feature).redshift_labels])
 	
 		#Append to list
 		splitted_specs.append(specs_redshift)
