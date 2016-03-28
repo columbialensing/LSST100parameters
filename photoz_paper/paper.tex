@@ -95,11 +95,15 @@ n(z) = n_0\left(\frac{z}{z_0}\right)^2\exp\left(-\frac{z}{z_0}\right)
 \end{equation}  
 %
 with $z_0=0.3$ and $n_0$ a normalization constant fixed so that $n(z)$ integrates to the total number of galaxies $N_g$. For each galaxy we compute the cosmic shear at $\pmb{\theta}_g$ using equation (\ref{meth:sheareqn}), producing a shear catalog $\{\pmb{\gamma}_g\}$. Different random realizations of a shear catalog $\{\pmb{\gamma}_g\}_r$ can be obtained rotating and periodically shifting the Large Scale Structure in the $N$--body snapshots according to the procedure explained in \citep{PetriVariance}. We produce $N_r=16000$ pseudo--independent realizations of the shear catalog $\{\pmb{\gamma}_g\}$. These shear realization cover the total survey area of LSST 10 times.
-We repeat the above procedure for $P=100$ different combinations of the parameter triplet $\bb{p}$, sampled according to a Latin hypercube scheme. The sampling procedure is the same described in \citep{CFHTMink,CFHTPeaks}. 
+We repeat the above procedure for $P=100$ different combinations of the parameter triplet $\bb{p}$, sampled according to a Latin hypercube scheme. The sampling procedure is the same described in \citep{CFHTMink,CFHTPeaks}. The parameter space sampling we adopted for our simulations is shown in Figure \ref{fig:simdesign}
 
-%ADD Simulation specifications 
-
-For each of these simulations, the $N$--body initial conditions are generated using the same random seed. In addition to this simulations, we produce simulated shear catalogs for a fiducial $\Lambda$CDM universe with $\bb{p}_0=(0.26,-1,0.8)$. In this case the randomization procedure is based on 5 independent $N$--body simulations, and the same number of pseudo--independent catalog realizations is produced.    
+\begin{figure*}
+\includegraphics[scale=0.4]{Figures/design.eps}
+\caption{Parameter space sampling}
+\label{fig:simdesign}
+\end{figure*}
+%
+For each of the parameter choices in Figure \ref{fig:simdesign}, the $N$--body initial conditions are generated using the same random seed. In addition to this simulations, we produce simulated shear catalogs for a fiducial $\Lambda$CDM universe with $\bb{p}_0=(0.26,-1,0.8)$. In this case the randomization procedure is based on 5 independent $N$--body simulations, and the same number of pseudo--independent catalog realizations is produced.    
 
 %%%%%%%%
 
@@ -118,12 +122,18 @@ In addition to shape noise contributions to the observed galaxy ellipticity we c
 z_p(z_s) = z_s + b_{\rm ph}(z_s) + \sigma_{\rm ph}(z_s)\mathcal{N}(0,1)   
 \end{equation}
 %
-where $\mathcal{N}(0,1)$ is the standard normal distribution. We bin the $N_g$ galaxies in our simulated catalogs in 5 redshift bins $\bar{z}_b$, $b=1...5$. Several models have been proposed in the literature for the photometric bias $b_{\rm ph}(z_s)$ (see for example \citep{Huterer2006}) and variance $\sigma_{\rm ph}(z_s)$ (see for example \citep{LSSTSciBook}). We make use of the photo-$z$ bias and variance values contained in the LSST Science Book \citep{LSSTSciBook}. The bin sizes are adjusted so that each of them contains the same number of galaxies. The galaxy distribution we assumed, along with the binning choice is shown in Figure \ref{fig:galdistr}
+where $\mathcal{N}(0,1)$ is the standard normal distribution. We bin the $N_g$ galaxies in our simulated catalogs in 5 redshift bins $\bar{z}_b$, $b=1...5$. Several models have been proposed in the literature for the photometric bias $b_{\rm ph}(z_s)$ (see for example \citep{Huterer2006}) and variance $\sigma_{\rm ph}(z_s)$ (see for example \citep{LSSTSciBook}). We make use of the photo-$z$ bias and variance values contained in the LSST Science Book \citep{LSSTSciBook}, which we show in Figure \ref{fig:lsstscibook}. The bin sizes are adjusted so that each of them contains the same number of galaxies. The galaxy distribution we assumed, along with the binning choice is shown in Figure \ref{fig:galdistr}
 
 \begin{figure}
 \includegraphics[scale=0.3]{Figures/galdistr.eps}
 \caption{Galaxy distribution assumed throughout this work, along with the choice of the redshift bins $\bar{z}_b$.}
 \label{fig:galdistr}
+\end{figure}
+
+\begin{figure}
+\includegraphics[scale=0.3]{Figures/scibook.eps}
+\caption{LSST Science Book}
+\label{fig:lsstscibook}
 \end{figure}
 
 We generate mock observations by applying an independent random realization of the photo-$z$ correction (\ref{meth:photoz-correction}) to each catalog realization in the fiducial cosmology $\bb{p}_0$ and by re--binning the galaxies according to their photometric redshifts $z_p$. In the remainder of the paper we use the following notation: we indicate a shear realization $r$ in cosmology $\bb{p}$ with shape noise added as $\h{\pmb{\gamma}}_r(\pmb{\theta}_g,z_g;\bb{p})$, and we indicate a mock observation as $\h{\pmb{\gamma}}_{\rm obs}(\pmb{\theta}_g,z_g)$.           
@@ -261,6 +271,13 @@ In this way we hope to capture the cosmological information contained in $\bbh{d
 \includegraphics[scale=0.3]{Figures/photoz_bias.eps}
 \caption{Bias due to photo-$z$ errors}
 \label{fig:photozbias}
+\end{figure}
+
+
+\begin{figure}
+\includegraphics[scale=0.3]{Figures/constraints.eps}
+\caption{Constraints in $(\Omega_m,w)$ space}
+\label{fig:constraintsOm-w}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%% DISCUSSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
