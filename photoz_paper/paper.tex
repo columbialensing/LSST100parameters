@@ -53,7 +53,7 @@
 \label{firstpage}
 
 \begin{abstract}
-Weak Gravitational Lensing is becoming a popular technique to constrain cosmological parameters, such as the Dark Energy equation of state $w$. When analyzing galaxy surveys, redshift information has proven to be a valuable addition to angular shear correlations. We forecast parameter constraints on the triplet $(\Omega_m,w,\sigma_8)$ for a LSST like galaxy photometric survey, using tomography of the shear-shear power spectrum, convergence peak counts and higher convergence moments. We evaluate the effect of uncorrected photometric redshift systematics on parameter constraints. We show that different statistics lead to different bias directions in parameter space, leaving a window open for self--calibration. 
+Weak Gravitational Lensing is becoming a popular technique to constrain cosmological parameters, such as the Dark Energy equation of state $w$. When analyzing galaxy surveys, redshift information has proven to be a valuable addition to angular shear correlations. We forecast parameter constraints on the triplet $(\Omega_m,w,\sigma_8)$ for a LSST like galaxy photometric survey, using tomography of the shear-shear power spectrum, convergence peak counts and higher convergence moments. We find that the addition of peak and counts to the power spectrum can significantly improve the constraints on the $(\Omega_m,w)$ doublet. We evaluate the effect of uncorrected photometric redshift systematics on parameter constraints. We find that different statistics lead to different bias directions in parameter space, leaving a window open for self--calibration. 
 \end{abstract}
 
 
@@ -67,7 +67,7 @@ Weak Gravitational Lensing is becoming a popular technique to constrain cosmolog
 
 \section{Introduction}
 %
-This work is organized as follows: we give an outline of the shear simulations we use in this work, followed by descriptions of the convergence reconstruction procedure and forward modeling of galaxy shape and redshift systematics. We then give an overview of the parameter inferences technique we used to forecast constraints on cosmology. We then discuss the main results of this work and present our conclusions as well as prospects for future work.  
+Weak Gravitational Lensing is a promising technique to probe the Large Scale Structure of the universe in which the tracers are unbiased \citep{wlreview}. This technique has the potential of improving significantly the constraints on the Dark Energy equation of state $w$ because it is most sensitive to the matter density fluctuations at the non--linear stage. Cosmology inferences from Weak Lensing observations have been produced for past (CFHTLenS \citep{cfht1}) and current (DES \citep{DES}) surveys, and are being planned for future experiments as well (LSST \citep{LSST}, WFIRST \citep{WFIRST}, Euclid \citep{Euclid}). Because of the non-linear nature of the density fluctuations probed by Weak Lensing, cosmological information might leak from quadratic statistics (such as two point functions and power spectra) into more complicated non-Gaussian statistics, for which forward modeling from cosmological parameters requires numerical simulations of cosmic shear fields. An extensive list of these non-Gaussian statistics, and their cosmological information content, have been investigated extensively in the literature. We investigate the constraining power of a subset of these non-Gaussian statistics combined with redshift tomography in a LSST-like survey. We also investigate the effects of uncorrected photometric redshift systematics on parameter constraints when using redshift tomography. This work is organized as follows: we give an outline of the shear simulations we use in this work, followed by descriptions of the convergence reconstruction procedure and forward modeling of galaxy shape and photometric redshift systematics. We then give an overview of the parameter inferences techniques we used to forecast constraints on cosmology. We then discuss the main results of this work and present our conclusions as well as prospects for future work.  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% METHODS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -91,6 +91,7 @@ We review the procedure used for generating mock shear catalogs. We consider a f
 The quantities that appear in equation (\ref{meth:sheareqn}) are the convergence $\kappa$, which is the source magnification due to lensing, and the cosmic shear $\pmb{\gamma}$, which is a measurement of the source ellipticity due to lensing from Large Scale Structure, assuming the non lensed shape is a circle. 
 We simulate $N_g = 10^6$ random galaxy positions $\{\pmb{\theta}_g\}$ distributed uniformly in a field of view of size $\theta_{\rm FOV}^2=(3.5{\rm deg})^2$, which correspond to a galaxy angular density of $n_g=22\,\rm{arcmin}^{-2}$. The galaxy have a distribution in redshift which mimics the one expected in the LSST survey
 \begin{equation}
+\label{meth:galdistr}
 n(z) = n_0\left(\frac{z}{z_0}\right)^2\exp\left(-\frac{z}{z_0}\right)
 \end{equation}  
 %
@@ -99,7 +100,7 @@ We repeat the above procedure for $P=100$ different combinations of the paramete
 
 \begin{figure*}
 \includegraphics[scale=0.4]{Figures/design.eps}
-\caption{Parameter space sampling}
+\caption{Parameter space sampling chosen for our simulations. We show both the sampling in the $(\Omega_m,w)$ (left) and $(\Omega_m,\sigma_8)$ (right) slices of the parameter space. The fiducial cosmology has been marked in red.}
 \label{fig:simdesign}
 \end{figure*}
 %
@@ -126,13 +127,13 @@ where $\mathcal{N}(0,1)$ is the standard normal distribution. We bin the $N_g$ g
 
 \begin{figure}
 \includegraphics[scale=0.3]{Figures/galdistr.eps}
-\caption{Galaxy distribution assumed throughout this work, along with the choice of the redshift bins $\bar{z}_b$.}
+\caption{Galaxy distribution assumed throughout this work (see equation (\ref{meth:galdistr})), along with the choice of the redshift bins $\bar{z}_b$. Our galaxy sample consists of $N_g=10^6$ galaxies. The figure shows the number of galaxies $N_g(z)$ at each redshift $z$.}
 \label{fig:galdistr}
 \end{figure}
 
 \begin{figure}
 \includegraphics[scale=0.3]{Figures/scibook.eps}
-\caption{LSST Science Book}
+\caption{Photo-$z$ bias $b_{\rm ph}(z_s)$ (black) and standard deviation $\sigma_{\rm ph}(z_s)$ (red) as a function of the source redshift $z_s$ for two different models, optimistic (solid lines) and pessimistic (dashed lines), obtained from the LSST Science Book \citep{LSSTSciBook}.}
 \label{fig:lsstscibook}
 \end{figure}
 
@@ -158,14 +159,14 @@ W(\pmb{\theta}_g,\pmb{\theta}_p;z_g,\bar{z}_b) =
 The convergence $\kappa(\pmb{\theta}_p)$ can be reconstructed from the $E$--mode of the shear field, which is evaluated from the Fourier Transform of the pixelized shear $\pmb{\gamma}(\pmb{\theta}_p,\bar{z}_b)$
 \begin{equation}
 \label{meth:psdefinition}
-\tilde\kappa(\pmb{\ell},\bar{z}_b) = \left(\frac{\tilde{\gamma}^1(\pmb{\ell},\bar{z}_b)(\ell_x^2-\ell_y^2)+2\ell_1\ell_2\tilde{\gamma}^2(\pmb{\ell},\bar{z}_b)}{\ell_x^2+\ell_y^2}\right) e^{-\frac{\ell^2\theta_G^2}{2}}
+\tilde\kappa(\pmb{\ell},\bar{z}_b) = \left(\frac{\tilde{\gamma}^1(\pmb{\ell},\bar{z}_b)(\ell_x^2-\ell_y^2)+2\ell_x\ell_y\tilde{\gamma}^2(\pmb{\ell},\bar{z}_b)}{\ell_x^2+\ell_y^2}\right) e^{-\frac{\ell^2\theta_G^2}{2}}
 \end{equation}
 %
 We chose the Gaussian filter smoothing scale $\theta_G=0.5\,{\rm arcmin}$ to correspond to the linear pixel resolution. Inverting the Fourier Transform yields the pixelized map $\kappa(\pmb{\theta}_p,\bar{z}_b)$. We apply this procedure to both the shear realizations $\h{\pmb{\gamma}}_r(\pmb{\theta}_g,z_g;\bb{p})$ and the mock observations $\h{\pmb{\gamma}}_{\rm obs}(\pmb{\theta}_g,z_g)$, yielding convergence realizations $\h{\kappa}_r(\pmb{\theta}_p,\bar{z}_b;\bb{p})$ and mock convergence observations $\h{\kappa}_{\rm obs}(\pmb{\theta}_p,\bar{z}_b)$. 
 
 We measure a variety of summary statistics from the pixelized convergence maps, which will then be used to forecast parameter constraints and biases. We consider three kinds of summary statistics, namely the $\kappa$ tomographic power spectrum $P^{\kappa\kappa}(\ell,\bar{z}_b,\bar{z}_{b'})$, the tomographic peak counts $n_{\rm pk}(\nu,\bar{z}_b)$ and a set of $\kappa$ moments $\pmb{\mu}(\bar{z}_b)$. The tomographic power spectrum is defined as 
 \begin{equation}
-{\rm Re}\left(\langle\tilde{\kappa}(\pmb{\ell},\bar{z}_b)\tilde{\kappa}(\pmb{\ell}',\bar{z}_{b'})\rangle\right) = (2\pi)^2\delta_D(\pmb{\ell}+\pmb{\ell}')P^{\kappa\kappa}(\ell,\bar{z}_b,\bar{z}_{b'})
+\langle\tilde{\kappa}(\pmb{\ell},\bar{z}_b)\tilde{\kappa}(\pmb{\ell}',\bar{z}_{b'})\rangle = (2\pi)^2\delta_D(\pmb{\ell}+\pmb{\ell}')P^{\kappa\kappa}(\ell,\bar{z}_b,\bar{z}_{b'})
 \end{equation}
 %
 Because the $\kappa$ field is statistically isotropical, the expectation value $\langle\rangle$, for each realization $r$, is taken over all the modes $\pmb{\ell}$ which have the same magnitude $\ell=\vert\pmb{\ell}\vert$. The peak count statistic $n_{\rm pk}(\nu,\bar{z}_b)$ is defined as the number of the $\kappa$ local maxima of a certain height $\kappa_{\rm max}=\nu\sigma_0$, where $\sigma_0$ is the $\kappa$ standard deviation over pixels. The $\kappa$ moments $\pmb{\mu}(\bar{z}_b)$ are defined as follows (see \citep{Matsubara10,Munshi12,MinkPetri}) 
@@ -250,6 +251,7 @@ We perform a Singular Value Decomposition (SVD) of $\Delta$
 %
 where $L$ is $P\times Q$, $\bb{\Lambda}={\rm diag}(\Lambda_1,...,\Lambda_Q)$ and $\bb{R}$ is $Q\times N_b$ and $Q={\min}(P,N_b)$. $R_{ni}$ is the $i$-th component of the $n$-th basis vector in statistics space. The singular value $\Lambda_n$ is the variance of the whitened summary statistic along the $n$-th basis vector. We assume that only summary statistic projections on the first $N_c$ basis vectors contain relevant cosmological information, and $N_c<N_b$ is a number that has to be determined from the simulations. Let $\bb{R}(N_c)$ be a matrix made of the first $N_c$ rows of $\bb{R}$ (we assume that the singular values $\Lambda_i$ are sorted). We define the PCA projection of a summary statistic $\bbh{d}$ on $N_c$ principal components as 
 \begin{equation}
+\label{meth:pcaprojection}
 \h{d}_n(N_c) = \sum_{i=1}^{N_b}(\bb{R}(N_c))_{ni}\left(P\frac{\h{d}_i}{\sum_{p=1}^P d_{pi}}-1\right) 
 \end{equation} 
 %
@@ -257,36 +259,47 @@ In this way we hope to capture the cosmological information contained in $\bbh{d
 %%%%%%%%%%%%%%%%%%%%%%% RESULTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Results}
+In this section we illustrate the main results of this work. Figure \ref{fig:pcacomponents} shows the robustness of the dimensionality reduction technique we adopted. on the three summary statistics considered, namely the convergence power spectrum $P^{\kappa\kappa}(\ell,\bar{z}_b,\bar{z}_{b'})$, peak counts $n_{\rm pk}(\nu,\bar{z}_b)$ and moments $\pmb{\mu}(\bar{z}_b)$. To measure the power spectrum we chose 15 uniformly spaced multipole bins between $(\ell_{\rm min},\ell_{\rm max})=(200,2000)$, for a total of $N_b=15\times 15=225$ measurement bands, including cross redshift information. We bin the convergence peak counts in 30 uniformly spaced $\nu$ bins between $(\nu_{\rm min},\nu_{\rm max})=(-2,7)$, for a total of $N_b=30\times5=150$ measurement bands, including redshift information. The total size of the moments summary statistic vector is $N_b=9\times 5=45$, including redshift information. The forecast error bars on $w$ are calculated according to equation (\ref{meth:parcovestimator}), where the covariance matrix $\bbh{C}$ and its inverse $\bbh{\Psi}$ have been estimated with $N_r=16000$ realizations of each summary statistic in the fiducial cosmology. Figure \ref{fig:constraintsOm-w} shows the $1\sigma$ confidence contours on the $(\Omega_m,w)$ doublet calculated with equation (\ref{meth:parcovestimator}) after the PCA dimensionality reduction performed according to equation (\ref{meth:pcaprojection}), for a variety of choices $({\rm statistic},N_c)$. We also show the improvements on the confidence contours when combining different summary statistics after the corresponding dimensionality reductions have been performed. Figure \ref{fig:photozbias} shows the effect of ignoring photo-$z$ errors on parameter constraints. To evaluate this effect we construct different mock observations, with and without photo-$z$ effects, and compare the results of the parameter fit according to equation (\ref{meth:parestimate}). Using our simulation suite, we construct 20 mock observations: the summary statistic in each observation is calculated by taking the mean of a random sample of $N_{\rm FOV}$ realizations of the summary statistic in the fiducial cosmology (randomly chosen among the ensemble of $N_r=16000$ that are available in the ensemble). The estimated covariance matrix $\bbh{C}$ is scaled by a factor $N_{\rm FOV}$ to take into account the construction process of the mock observations. This procedure allows to forecast the results an LSST-like survey would obtain.        
 
 \begin{figure*}
 \includegraphics[scale=0.3]{Figures/w_power_spectrum_pca.eps}
 \includegraphics[scale=0.3]{Figures/w_peaks_pca.eps}
 \includegraphics[scale=0.3]{Figures/w_moments_pca.eps}
-\caption{Constraints on $w$ as a function of $N_c$}
+\caption{$1\sigma$ errors on $w$ as a function of the number of the principal components $N_c$, using the power spectrum (top left), peak counts (top right) and moments (bottom). The thin colored lines refer to single redshift summary statistics, while the thick black line shows the case in which the joint redshift information is included.}
 \label{fig:pcacomponents}
 \end{figure*}
 
 
 \begin{figure}
-\includegraphics[scale=0.3]{Figures/photoz_bias.eps}
-\caption{Bias due to photo-$z$ errors}
-\label{fig:photozbias}
+\includegraphics[scale=0.3]{Figures/constraints.eps}
+\caption{$1\sigma$ confidence contours on the $(\Omega_m,w)$ parameter space obtained using equation (\ref{meth:parcovestimator}). The covariance matrix $\bbh{C}$ and its inverse $\bbh{\Psi}$ have been obtained using $16000$ summary statistics realizations, and has been scaled by a factor $N_{\rm FOV}=1600$ to mimic the constraining power of an LSST-like survey.}
+\label{fig:constraintsOm-w}
 \end{figure}
 
-
 \begin{figure}
-\includegraphics[scale=0.3]{Figures/constraints.eps}
-\caption{Constraints in $(\Omega_m,w)$ space}
-\label{fig:constraintsOm-w}
+\includegraphics[scale=0.3]{Figures/photoz_bias.eps}
+\caption{Distribution of parameter estimates in the $(\Omega_m,w)$ parameter space using the power spectrum (black), peak counts (black) and moments (blue) to fit 20 LSST-like mock observations. The parameter deviations $(\delta\Omega_m,\delta w)$ are obtained comparing parameter estimates according to equation (\ref{meth:parestimate}) with and without photo-$z$ errors. Results for both optimistic (dots) and pessimistic (crosses) are shown. The colored squares and the ellipses correspond to respectively to the mean and $1\sigma$ level of the $(\delta\Omega_m,\delta w)$ distribution in the pessimistic systematics case, assuming this distribution is Gaussian.}
+\label{fig:photozbias}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%% DISCUSSION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Discussion}
+In this section we discuss our findings. Figure \ref{fig:pcacomponents} shows that our dimensionality reduction technique is robust. For all the summary statistics we consider, we notice that a plateau in the $w$ error is reached for a sufficient high number of principal components $N_c$. We also see that for single redshift statistics, this plateau is reached for $\sim 5$ components for the power spectrum and the moments, and $\sim 10$ components for the peak counts. The number of components to consider increases when including redshift information, and can reach $\sim 30$ for the power spectrum and moments and $\sim 40$ for the peak counts. We can also see that most of the cosmological information is concentrated in the last redshift bin, with tomography improving the constraints by a factor of few for the power spectrum and peak counts.
+
+In Figure \ref{fig:constraintsOm-w} we can see that peak counts and moments can significantly improve the constraints on $(\Omega_m,w)$ when combined with the power spectrum. Combining the peaks or the moments to the power spectrum improves the $w$ constraint by a factor of 1.7 while considering the three statistics together the error improves by an additional $30\%$. This shows that peaks and moments contain cosmological information that is not contained in the power spectrum, because a similar improvement cannot be obtained by increasing the number of PCA components in the power spectrum dimensionality reduction procedure. 
+
+Figure \ref{fig:photozbias} quantifies the effect of uncorrected photo-$z$ errors on $(\Omega_m,w)$ constraints. Because the random nature of the observations, parameter values $\bbh{p}$ estimated from equation (\ref{meth:parestimate}) are affected by statistical fluctuations. In Figure \ref{fig:photozbias} we show 20 random draws from the probability distribution of $\delta \bbh{p}=\bbh{p}_{\rm photo-z}-\bbh{p}_{\rm no-photo-z}$. We can conclude that the $\bbh{p}$ estimator is biased if $\langle\delta\bbh{p}\rangle\neq 0$. Figure \ref{fig:photozbias} clearly show that photo-$z$ errors cause parameter biases at more than $1\sigma$ significance level when using the power spectrum and the moments, while no bias is observed for the peak count statistic within the constraining accuracy. We also observe that photo-$z$ errors bias the constraints in different directions, leaving open possibilities for bias self--calibration techniques.         
 
 %%%%%%%%%%%%%%%%%%%%%%% CONCLUSIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Conclusions}
+In this work we study cosmological parameter constraints forecasts for an LSST-like galaxy survey using the convergence power spectrum and a range of non--Gaussian statistics. We make use of redshift tomography to improve the constraints from their single redshift counterparts. We also investigate the effects of uncorrected photo-$z$ systematic effects on the inferred cosmology. We find that:
+\begin{itemize}
+	\item Principal Component analysis is a robust technique to keep the dimensionality of the parameter space under control and avoid the numerical pitfalls explained in \citep{Taylor12,DodelsonSchneider13,Taylor14} and more recently \citep{PetriVariance}. In particular we find that only a few components are necessary to characterize the cosmological information content in single redshift statistics, while more components are necessary when tomography is included. 
+	\item Peak counts and moments can significantly improve $(\Omega_m,w)$ parameter constraints when used in combination with the power spectrum.
+	\item Uncorrected photo-$z$ systematics can bias parameter constraints, but the direction of the bias is different for each summary statistic, leaving open windows for self-calibration
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% ACKNOWLEDGMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -78,7 +78,7 @@ def galdistr(cmd_args,fontsize=22):
 
 	#Labels
 	ax.set_xlabel(r"$z$",fontsize=fontsize)
-	ax.set_ylabel(r"$N_g$",fontsize=fontsize)
+	ax.set_ylabel(r"$N_g(z)$",fontsize=fontsize)
 	ax.legend()
 
 	#Save figure
@@ -97,8 +97,16 @@ def scibook_photo(cmd_args,fontsize=22):
 	z,s = np.loadtxt("data/photoz/SciBook_sigma_gold.out",unpack=True)
 
 	#Plot
-	ax.plot(z,b,label=r"$b(z_s)$",color="black")
-	ax.plot(z,s,label=r"$\sigma(z_s)$",color="red")
+	ax.plot(z,b,label=r"$b_{\rm ph}(z_s)$ ${\rm optimistic}$",color="black")
+	ax.plot(z,s,label=r"$\sigma_{\rm ph}(z_s)$ ${\rm optimistic}$",color="red")
+
+	#Read in bias and sigma
+	z,b = np.loadtxt("data/photoz/weightcombo_bias_gold.out",unpack=True)
+	z,s = np.loadtxt("data/photoz/weightcombo_sigma_gold.out",unpack=True)
+
+	#Plot
+	ax.plot(z,b,label=r"$b_{\rm ph}(z_s)$ ${\rm pessimistic}$",color="black",linestyle="--")
+	ax.plot(z,s,label=r"$\sigma_{\rm ph}(z_s)$ ${\rm pessimistic}$",color="red",linestyle="--")
 
 	#Labels
 	ax.set_xlabel(r"$z_s$",fontsize=fontsize)
@@ -245,8 +253,8 @@ def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",paramet
 	ax.set_ylim(-ylim,ylim)
 
 	#Legends
-	ax.set_xlabel(r"${\rm bias}$"+ "$($" + par2label[parameters[0]] + "$)$",fontsize=fontsize)
-	ax.set_ylabel(r"${\rm bias}$"+ "$($" + par2label[parameters[1]] + "$)$",fontsize=fontsize)
+	ax.set_xlabel(r"$\delta$" + par2label[parameters[0]],fontsize=fontsize)
+	ax.set_ylabel(r"$\delta$" + par2label[parameters[1]],fontsize=fontsize)
 	ax.legend(loc="upper left")
 
 	#Save figure
