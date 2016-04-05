@@ -127,18 +127,12 @@ We model effect of photo-$z$ errors as a constant bias term $b_{\rm ph}(z_s)$ pl
 z_p(z_s) = z_s + b_{\rm ph}(z_s) + \sigma_{\rm ph}(z_s)\mathcal{N}(0,1)   
 \end{equation}
 %
-where $\mathcal{N}(0,1)$ is the standard normal distribution. We bin the $N_g$ galaxies in our simulated catalogs in 5 redshift bins $\bar{z}_b$, $b=1...5$. Several models have been proposed in the literature for the photometric bias $b_{\rm ph}(z_s)$ (see for example \citep{Huterer2006}) and variance $\sigma_{\rm ph}(z_s)$ (see for example \citep{LSSTSciBook}). We make use of the photo-$z$ bias and variance values contained in the LSST Science Book \citep{LSSTSciBook}, which we show in Figure \ref{fig:lsstscibook}. The bin sizes are adjusted so that each of them contains the same number of galaxies. The galaxy distribution we assumed, along with the binning choice is shown in Figure \ref{fig:galdistr}
+where $\mathcal{N}(0,1)$ is the standard normal distribution. We bin the $N_g$ galaxies in our simulated catalogs in 5 redshift bins $\bar{z}_b$, $b=1...5$. Several models have been proposed in the literature for the photometric bias $b_{\rm ph}(z_s)$ (see for example \citep{Huterer2006}) and variance $\sigma_{\rm ph}(z_s)$ (see for example \citep{LSSTSciBook}). We chose the photo-$z$ bias and variance functions in equation (\ref{meth:photoz-correction}) to be the science requirements contained in the LSST Science Book \citep{LSSTSciBook}, namely $b(z_s)=0.003(1+z_s)$ and $\sigma(z_s)=0.02(1+z_s)$. 
 
 \begin{figure}
 \includegraphics[scale=0.3]{Figures/galdistr.pdf}
 \caption{Galaxy distribution assumed throughout this work (see equation (\ref{meth:galdistr})), along with the choice of the redshift bins $\bar{z}_b$. Our galaxy sample consists of $N_g=10^6$ galaxies. The figure shows the number of galaxies $N_g(z)$ at each redshift $z$.}
 \label{fig:galdistr}
-\end{figure}
-
-\begin{figure}
-\includegraphics[scale=0.3]{Figures/scibook.eps}
-\caption{Photo-$z$ bias $b_{\rm ph}(z_s)$ (black) and standard deviation $\sigma_{\rm ph}(z_s)$ (red) as a function of the source redshift $z_s$ for two different models, optimistic (solid lines) and pessimistic (dashed lines), obtained from the LSST Science Book \citep{LSSTSciBook}.}
-\label{fig:lsstscibook}
 \end{figure}
 
 We generate mock observations by applying an independent random realization of the photo-$z$ correction (\ref{meth:photoz-correction}) to each catalog realization in the fiducial cosmology $\bb{p}_0$ and by re--binning the galaxies according to their photometric redshifts $z_p$. In the remainder of the paper we use the following notation: we indicate a shear realization $r$ in cosmology $\bb{p}$ with shape noise added as $\h{\pmb{\gamma}}_r(\pmb{\theta}_g,z_g;\bb{p})$, and we indicate a mock observation as $\h{\pmb{\gamma}}_{\rm obs}(\pmb{\theta}_g,z_g)$.           
@@ -282,13 +276,13 @@ Figure \ref{fig:photozbias} shows the effect of ignoring photo-$z$ errors on par
 
 
 \begin{figure}
-\includegraphics[scale=0.3]{Figures/constraints.eps}
+\includegraphics[scale=0.3]{Figures/constraints_Om-w.eps}
 \caption{$1\sigma$ confidence contours on the $(\Omega_m,w)$ parameter space, marginalized over $\sigma_8$, obtained using equation (\ref{meth:parcovestimator}). The covariance matrix $\bbh{C}$ and its inverse $\bbh{\Psi}$ have been obtained using $16000$ summary statistics realizations, and has been scaled by a factor $N_{\rm FOV}=1600$ to mimic the constraining power of an LSST-like survey.}
 \label{fig:constraintsOm-w}
 \end{figure}
 
 \begin{figure}
-\includegraphics[scale=0.3]{Figures/photoz_bias.eps}
+\includegraphics[scale=0.3]{Figures/photoz_bias_Om-w.eps}
 \caption{Distribution of parameter estimates in the $(\Omega_m,w)$ parameter space using the power spectrum (red), peak counts (green) and moments (blue) to fit 20 LSST-like mock observations. The parameter deviations $(\delta\Omega_m,\delta w)$ are obtained comparing parameter estimates according to equation (\ref{meth:parestimate}) with and without photo-$z$ errors. Results for both optimistic (dots) and pessimistic (crosses) are shown. The colored squares and the ellipses correspond to respectively to the mean and $1\sigma$ level of the $(\delta\Omega_m,\delta w)$ distribution in the pessimistic systematics case, assuming this distribution is Gaussian.}
 \label{fig:photozbias}
 \end{figure}
