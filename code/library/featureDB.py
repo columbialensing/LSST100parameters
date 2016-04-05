@@ -541,7 +541,7 @@ class FisherDatabase(Database):
 			ax.set_xlabel(r"$N_c$",fontsize=22)
 			ax.set_ylabel(r"$\Delta$" + parameter,fontsize=22)
 			ax.set_yscale("log")
-			ax.legend(prop={"size":16})
+			ax.legend(prop={"size":25})
 
 		#Tight layout
 		fig.tight_layout()

@@ -41,11 +41,11 @@ par2value = {
 def design(cmd_args,fontsize=22):
 
 	#Set up plot
-	fig,ax = plt.subplots(1,2,figsize=(16,8))
+	fig,ax = plt.subplots(1,3,figsize=(24,8))
 
 	#Read in the simulation design
 	design = Design.read("md/design.pkl")
-	parameters = [("Om","w"),("Om","sigma8")]
+	parameters = [("Om","w"),("Om","sigma8"),("sigma8","w")]
 
 	#Plot the points
 	for n,(p1,p2) in enumerate(parameters):
@@ -107,6 +107,9 @@ def scibook_photo(cmd_args,fontsize=22):
 	#Plot
 	ax.plot(z,b,label=r"$b_{\rm ph}(z_s)$ ${\rm pessimistic}$",color="black",linestyle="--")
 	ax.plot(z,s,label=r"$\sigma_{\rm ph}(z_s)$ ${\rm pessimistic}$",color="red",linestyle="--")
+
+	ax.plot(z,0.003*(1+z),label=r"$b_{\rm ph}(z_s)=0.003(1+z_s)$",color="blue",linestyle="-",linewidth=3)
+	ax.plot(z,0.02*(1+z),label=r"$\sigma_{\rm ph}(z_s)=0.02(1+z_s)$",color="blue",linestyle="--",linewidth=3)
 
 	#Labels
 	ax.set_xlabel(r"$z_s$",fontsize=fontsize)
@@ -200,7 +203,7 @@ def parameter_constraints(cmd_args,db_name="data/fisher/constraints_combine.sqli
 ###################################################################################################
 ###################################################################################################
 
-def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",parameters=["Om","w"],feature_labels=["power_spectrum_pca","peaks_pca","moments_pca"],colors=["black","red","blue"],fontsize=22):
+def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",parameters=["Om","w"],feature_labels=["power_spectrum_pca","peaks_pca","moments_pca"],colors=["red","green","blue"],fontsize=22):
 	
 	#Init figure
 	fig,ax = plt.subplots()
@@ -245,8 +248,8 @@ def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",paramet
 	ylim = np.abs(np.array(ax.get_ylim())).max()
 
 	#Show the fiducial value
-	ax.plot(np.zeros(100),np.linspace(-ylim,ylim,100),linestyle="-",color="green")
-	ax.plot(np.linspace(-xlim,xlim,100),np.zeros(100),linestyle="-",color="green")
+	ax.plot(np.zeros(100),np.linspace(-ylim,ylim,100),linestyle="--",color="black")
+	ax.plot(np.linspace(-xlim,xlim,100),np.zeros(100),linestyle="--",color="black")
 
 	#Set the axes bounds
 	ax.set_xlim(-xlim,xlim)
