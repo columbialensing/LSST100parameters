@@ -122,10 +122,17 @@ def scibook_photo(cmd_args,fontsize=22):
 ###################################################################################################
 ###################################################################################################
 
-def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite",features=["power_spectrum","peaks","moments"],colors=["red","green","blue"],parameter="w",fontsize=22):
+def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite",feature="power_spectrum",base_color="black",pca_components=[5,10],colors=["red","blue","green"],parameter="w",ylim=None,fontsize=22):
 
 	#Set up plot
 	fig,ax = plt.subplots()
+
+	#Axes bounds
+	if ylim is not None:
+		ax.set_ylim(*ylim)
+
+	#Construct title
+	title = r"${\rm " + feature.replace("_","\,\,") + r"}$"
 
 	#Plot each feature 
 	with FisherDatabase(db_name) as db:
@@ -133,19 +140,43 @@ def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite"
 		#Query parameter variance
 		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise_no_pca'.format(parameter))
 
-		#Cycle over features 
-		for nf,f in enumerate(features):
-			var_feature = var_db[var_db["feature_label"].str.contains(f)]["{0}-{0}".format(parameter)].values
-			ax.plot(np.sqrt(var_feature),color=colors[nf],label=f)
+		#Plot feature without PCA
+		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,color=base_color,label=r"${\rm No}$ ${\rm PCA}$",alpha=0.3)
+
+		#Plot features with PCA
+		for n,nc in enumerate(pca_components):
+			var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise WHERE bins={1}'.format(parameter,nc))
+			var_feature = var_db[var_db["feature_label"].str.contains(feature+"_pca_z")]["{0}-{0}".format(parameter)].values
+			ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor=colors[n],label=r"$N_c={0}$".format(nc))
+
+		#Plot tomographic constraint with the maximum number of pca components
+		var_db = db.query('SELECT "{0}-{0}",bins,feature_label FROM pcov_noise'.format(parameter))
+		var_feature_tomo,nc,label = var_db.query("feature_label=='{0}'".format(feature+"_pca")).tail(1).values.flat
+		ax.bar(5,np.sqrt(var_feature_tomo),width=2,color=base_color)
 
 	#Axes labels
-	ax.set_xticks(range(len(var_feature)))
-	ax.set_xticklabels([r"$z_{0}$".format(n+1) for n in range(len(var_feature))],fontsize=fontsize)
+	xticks = np.arange(len(var_feature)+1)+0.5
+	xticks[-1] += 0.5
+	ax.set_xticks(xticks)
+	ax.set_xticklabels([r"$\bar{z}_" + str(n+1) + r"$" for n in range(len(var_feature))] + [r"${\rm Tomo}$"+r"$(N_c={0})$".format(int(nc))],fontsize=fontsize)
 	ax.set_ylabel(r"$\Delta$"+par2label[parameter],fontsize=fontsize)
-	ax.legend()
+	ax.legend(prop={"size":25})
+
+	#Title
+	ax.set_title(title,fontsize=fontsize)
 
 	#Save the figure
-	fig.savefig("{0}_no_pca.{1}".format(parameter,cmd_args.type))
+	fig.savefig("{0}_{1}_no_pca.{2}".format(parameter,feature,cmd_args.type))
+
+def constraints_no_pca_power(cmd_args):
+	constraints_no_pca(cmd_args,feature="power_spectrum",pca_components=[5,10])
+
+def constraints_no_pca_peaks(cmd_args):
+	constraints_no_pca(cmd_args,feature="peaks",pca_components=[12,24,27])
+
+def constraints_no_pca_moments(cmd_args):
+	constraints_no_pca(cmd_args,feature="moments",pca_components=[7,9])
 
 ###################################################################################################
 ###################################################################################################
@@ -282,7 +313,7 @@ def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",paramet
 	#Legends
 	ax.set_xlabel(r"$\delta$" + par2label[parameters[0]],fontsize=fontsize)
 	ax.set_ylabel(r"$\delta$" + par2label[parameters[1]],fontsize=fontsize)
-	ax.legend(loc="upper right")
+	ax.legend(loc="upper right",prop={"size":25})
 
 	#Save figure
 	fig.savefig("photoz_bias_{0}.{1}".format("-".join(parameters),cmd_args.type))
@@ -302,7 +333,9 @@ method["4a"] = pca_components_power_spectrum
 method["4b"] = pca_components_peaks
 method["4c"] = pca_components_moments
 
-method["5"] = constraints_no_pca
+method["5a"] = constraints_no_pca_power
+method["5b"] = constraints_no_pca_peaks
+method["5c"] = constraints_no_pca_moments
 
 method["6"] = parameter_constraints
 method["7"] = photoz_bias
