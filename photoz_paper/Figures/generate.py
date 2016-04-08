@@ -142,6 +142,7 @@ def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite"
 
 		#Plot feature without PCA
 		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
+		var_highest_z = var_feature[-1]
 		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,color=base_color,label=r"${\rm No}$ ${\rm PCA}$",alpha=0.3)
 
 		#Plot features with PCA
@@ -154,6 +155,9 @@ def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite"
 		var_db = db.query('SELECT "{0}-{0}",bins,feature_label FROM pcov_noise'.format(parameter))
 		var_feature_tomo,nc,label = var_db.query("feature_label=='{0}'".format(feature+"_pca")).tail(1).values.flat
 		ax.bar(5,np.sqrt(var_feature_tomo),width=2,color=base_color)
+
+		#Put a percent value on the last bar of the graph
+		ax.text(5.5,np.sqrt(var_highest_z),r"$-{0}\%$".format(int(100*(np.sqrt(var_highest_z/var_feature_tomo)-1))),fontsize=fontsize)
 
 	#Axes labels
 	xticks = np.arange(len(var_feature)+1)+0.5
@@ -327,18 +331,19 @@ method = dict()
 
 method["1"] = design
 method["2"] = galdistr
-method["3"] = scibook_photo
 
-method["4a"] = pca_components_power_spectrum
-method["4b"] = pca_components_peaks
-method["4c"] = pca_components_moments
+method["3a"] = pca_components_power_spectrum
+method["3b"] = pca_components_peaks
+method["3c"] = pca_components_moments
 
-method["5a"] = constraints_no_pca_power
-method["5b"] = constraints_no_pca_peaks
-method["5c"] = constraints_no_pca_moments
+method["4a"] = constraints_no_pca_power
+method["4b"] = constraints_no_pca_peaks
+method["4c"] = constraints_no_pca_moments
 
-method["6"] = parameter_constraints
-method["7"] = photoz_bias
+method["5"] = parameter_constraints
+method["6"] = photoz_bias
+
+method["x"] = scibook_photo
 
 #Main
 def main():
