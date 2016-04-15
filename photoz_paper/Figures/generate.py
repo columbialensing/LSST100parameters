@@ -157,7 +157,7 @@ def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite"
 		ax.bar(5,np.sqrt(var_feature_tomo),width=2,color=base_color)
 
 		#Put a percent value on the last bar of the graph
-		ax.text(5.5,np.sqrt(var_highest_z),r"$-{0}\%$".format(int(100*(np.sqrt(var_highest_z/var_feature_tomo)-1))),fontsize=fontsize)
+		#ax.text(5.5,np.sqrt(var_highest_z),r"$-{0}\%$".format(int(100*(np.sqrt(var_highest_z/var_feature_tomo)-1))),fontsize=fontsize)
 
 	#Axes labels
 	xticks = np.arange(len(var_feature)+1)+0.5
