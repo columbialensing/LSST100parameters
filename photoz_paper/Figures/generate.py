@@ -324,6 +324,86 @@ def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",paramet
 
 ###################################################################################################
 ###################################################################################################
+
+def bias_vs_sigma(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",parameters=["Om","w"],features_to_show=["ps70","pk70","mu40"],fontsize=22):
+
+	#Init figure
+	fig,ax = plt.subplots()
+	ellipses = list()
+	labels = list()
+
+	#Cycle over features
+	for f in features_to_show:
+
+		#Feature properties
+		feature_label = feature_properties[f]["name"]
+		nbins = feature_properties[f]["pca_components"]
+		color = feature_properties[f]["color"]
+		plot_label = feature_properties[f]["label"]
+		marker = feature_properties[f]["marker"]
+
+		############
+		#No photo-z#
+		############
+
+		with FisherDatabase(db_name) as db:
+			pfit = db.query_parameter_fit(feature_label,table_name="mocks_without_photoz",parameters=parameters).query("bins=={0}".format(nbins))
+			p1f,p2f = [ pfit[parameters[n]+"_fit"].values for n in [0,1] ]
+
+		###########################
+		#With photo-z: (bias only)#
+		###########################
+
+		with FisherDatabase(db_name) as db:
+			pfit = db.query_parameter_fit(feature_label,table_name="mocks_photoz_requirement_bias",parameters=parameters).query("bins=={0}".format(nbins))
+			p1,p2 = [ pfit[parameters[n]+"_fit"].values for n in [0,1] ]
+			ax.scatter((p1-p1f).mean(),(p2-p2f).mean(),color=color,marker="s",s=60)
+
+			#Draw an error ellipse around the mean bias
+			center = ((p1-p1f).mean(),(p2-p2f).mean())
+			pcov = np.cov([p1-p1f,p2-p2f]) 
+			ellipses.append(FisherAnalysis.ellipse(center,pcov,p_value=0.677,fill=False,edgecolor=color,linestyle="-"))
+			labels.append(feature_properties[f]["label"] + r"$({\rm bias})$")
+			ax.add_artist(ellipses[-1])
+
+		############################
+		#With photo-z: (sigma only)#
+		############################
+
+		with FisherDatabase(db_name) as db:
+			pfit = db.query_parameter_fit(feature_label,table_name="mocks_photoz_requirement_sigma",parameters=parameters).query("bins=={0}".format(nbins))
+			p1,p2 = [ pfit[parameters[n]+"_fit"].values for n in [0,1] ]
+			ax.scatter((p1-p1f).mean(),(p2-p2f).mean(),color=color,marker="x",s=60)
+
+			#Draw an error ellipse around the mean bias
+			center = ((p1-p1f).mean(),(p2-p2f).mean())
+			pcov = np.cov([p1-p1f,p2-p2f]) 
+			ellipses.append(FisherAnalysis.ellipse(center,pcov,p_value=0.677,fill=False,edgecolor=color,linestyle="--"))
+			labels.append(feature_properties[f]["label"] + r"$(\sigma)$")
+			ax.add_artist(ellipses[-1])
+
+	#Get axes bounds
+	xlim = np.abs(np.array(ax.get_xlim())).max()
+	ylim = np.abs(np.array(ax.get_ylim())).max()
+
+	#Show the fiducial value
+	ax.plot(np.zeros(100),np.linspace(-ylim,ylim,100),linestyle="--",color="black")
+	ax.plot(np.linspace(-xlim,xlim,100),np.zeros(100),linestyle="--",color="black")
+
+	#Set the axes bounds
+	ax.set_xlim(-xlim,xlim)
+	ax.set_ylim(-ylim,ylim)
+
+	#Legends
+	ax.set_xlabel(r"$\delta$" + par2label[parameters[0]],fontsize=fontsize)
+	ax.set_ylabel(r"$\delta$" + par2label[parameters[1]],fontsize=fontsize)
+	ax.legend(ellipses,labels,loc="upper right",prop={"size":15})
+
+	#Save figure
+	fig.savefig("bias_vs_sigma_{0}.{1}".format("-".join(parameters),cmd_args.type))
+
+###################################################################################################
+###################################################################################################
 ###################################################################################################
 
 #Method dictionary
@@ -342,6 +422,8 @@ method["4c"] = constraints_no_pca_moments
 
 method["5"] = parameter_constraints
 method["6"] = photoz_bias
+
+method["7"] = bias_vs_sigma
 
 method["x"] = scibook_photo
 
