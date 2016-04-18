@@ -3,7 +3,10 @@
 import sys,os,argparse
 sys.modules["mpi4py"] = None
 
+import itertools
+
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from lenstools.catalog.shear import Catalog
@@ -402,6 +405,68 @@ def bias_vs_sigma(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",param
 	#Save figure
 	fig.savefig("bias_vs_sigma_{0}.{1}".format("-".join(parameters),cmd_args.type))
 
+
+###################################################################################################
+###################################################################################################
+
+rows = {
+
+"ps5" : {"name" : "power_spectrum_pca_z4" , "table_name" : "pcov_noise" ,"bins" : 14 , "label" : r"Power spectrum ($\bar{z}_5$)"},
+"ps-tomo" : {"name" : "power_spectrum_pca" , "table_name" : "pcov_noise" , "bins" : 70 , "label" : "Power spectrum (tomography)"},
+"peaks5" : {"name" : "peaks_pca_z4" , "table_name" : "pcov_noise" , "bins" : 27 , "label" : r"Peaks ($\bar{z}_5$)"},
+"peaks-tomo" : {"name" : "peaks_pca" , "table_name" : "pcov_noise" , "bins" : 70 , "label" : "Peaks (tomography)"},
+"moments5" : {"name" : "moments_pca_z4" , "table_name" : "pcov_noise" , "bins" : 9 , "label" : r"Moments ($\bar{z}_5$)"},
+"moments-tomo" : {"name" : "moments_pca" , "table_name" : "pcov_noise" , "bins" : 40 , "label" : "Moments (tomography)"},
+
+"ps+pk" : {"name" : "power_spectrum+peaks" , "table_name" : "pcov_noise_combine" , "bins" : 70 , "label" : "Power spectrum + peaks"},
+"ps+mu" : {"name" : "power_spectrum+moments" , "table_name" : "pcov_noise_combine" , "bins" : 60 , "label" : "Power spectrum + moments"},
+"ps+pk+mu" : {"name" : "power_spectrum+peaks+moments" , "table_name" : "pcov_noise_combine" , "bins" : 100 , "label" : "Power spectrum + peaks + moments"} 
+
+}
+
+columns = {
+	
+	"labels" : [r"$\Delta \Omega_m$",r"$\Delta w$",r"$\Delta \sigma_8$",r"$\sqrt[3]{\rm Area}$ $(\Omega_m,w,\sigma_8)$"] ,
+	r"$\Delta \Omega_m$" : lambda r:np.sqrt(r["Om-Om"]),
+	r"$\Delta w$" : lambda r:np.sqrt(r["w-w"]),
+	r"$\Delta \sigma_8$" : lambda r:np.sqrt(r["sigma8-sigma8"]),
+	r"$\sqrt[3]{\rm Area}$ $(\Omega_m,w,\sigma_8)$" : lambda r: np.linalg.det(r[ [pi+"-"+pj for pi,pj in itertools.product(*(["Om","w","sigma8"],)*2)] ].values.reshape(3,3).astype(np.float))**(1/6.)
+
+}
+
+#Table with errors, ellipse contours, etc...
+def constraint_table(cmd_args,db_name="data/fisher/constraints_combine.sqlite",print_to=sys.stdout,features_to_show=["ps5","ps-tomo","peaks5","peaks-tomo","moments5","moments-tomo","ps+pk","ps+mu","ps+pk+mu"],rows=rows,columns=columns):
+
+	#Prepare the Table with the appropriate number of rows and columns
+	table = pd.DataFrame([rows[r]["label"] for r in features_to_show],columns=["Statistic"])
+	for c in columns["labels"]:
+		table[c] = None
+
+	#Query the database and fill in the data
+	with FisherDatabase(db_name) as db:
+		for nf,feature in enumerate(features_to_show):
+
+			#Query the entire row
+			name = rows[feature]["name"]
+			db_table_name = rows[feature]["table_name"]
+			nbins = rows[feature]["bins"] 
+			full_row = db.query('SELECT * FROM {0} WHERE feature_label="{1}" AND bins={2}'.format(db_table_name,name,nbins))
+
+			#Select entries in the row to put in the table
+			for c in columns["labels"]:
+				table[c].iloc[nf] = full_row.apply(columns[c],axis=1).values[0]
+
+	#Output the table
+	latex_kwargs = {"escape":False,"index":False,"float_format":lambda n:"{0:.4f}".format(n)}
+
+
+	if type(print_to)==file:
+		print_to.write(table.to_latex(**latex_kwargs))
+	else:
+		with open(print_to,"w") as fp:
+			fp.write(table.to_latex(**latex_kwargs))
+
+
 ###################################################################################################
 ###################################################################################################
 ###################################################################################################
@@ -424,8 +489,7 @@ method["5"] = parameter_constraints
 method["6"] = photoz_bias
 
 method["7"] = bias_vs_sigma
-
-method["x"] = scibook_photo
+method["table1"] = constraint_table
 
 #Main
 def main():
