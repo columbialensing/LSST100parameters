@@ -47,6 +47,9 @@ def generate_gaussian_photoz_errors(z,intervals=None,bias=None,sigma=None,seed=N
 				intervals,bias_values = parse_photoz_txt(bias)
 				photoz_errors += step(z,intervals,bias_values)
 		
+		elif type(bias)==float:
+			photoz_errors += bias*(1+z)
+		
 		else:
 			intervals,bias_values = intervals,bias
 			photoz_errors += step(z,intervals,bias_values)
@@ -66,6 +69,9 @@ def generate_gaussian_photoz_errors(z,intervals=None,bias=None,sigma=None,seed=N
 				intervals,sigma_values = parse_photoz_txt(sigma)
 				photoz_errors += np.random.randn(len(z))*step(z,intervals,sigma_values)
 		
+		elif type(sigma)==float:
+			photoz_errors += np.random.randn(len(z))*sigma*(1+z)
+
 		else:
 			intervals,sigma_values = intervals,sigma
 			photoz_errors += np.random.randn(len(z))*step(z,intervals,sigma_values)

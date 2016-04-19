@@ -159,16 +159,19 @@ def split_redshifts(specs,redshift_index=range(5)):
 		
 		#Deep copy of the original dictionary
 		specs_redshift = dict()
-		for key in ["dbname","table_name","feature_label_root","feature_label_format","features","realizations_for_covariance","realizations_for_data","pca_components"]:
-			specs_redshift[key] = specs[key]
+		for key in ["output_dbname","output_table_name","feature_label_root","feature_label_format","features","realizations_for_covariance","realizations_for_data","pca_components","mock_data_realizations"]:
+			try:
+				specs_redshift[key] = specs[key]
+			except:
+				pass
 
 		#Append redshift label to name
 		specs_redshift["feature_label_root"] += "_z{0}".format(zi)
 		
 		#Update features with redshift filter
 		for feature in specs["features"]:
-			specs_redshift[feature] = dict((("feature_filter",specs[feature]["feature_filter"]),("realization_filter",specs[feature]["realization_filter"])))
-			specs_redshift[feature]["redshift_filter"] = " AND ".join(["{0}={1}".format(l,zi) for l in getattr(settings,feature).redshift_labels])
+			specs_redshift[feature] = dict((("features_dbname",specs[feature]["features_dbname"]),("data_table",specs[feature]["data_table"]),("feature_filter",specs[feature]["feature_filter"]),("realization_filter",specs[feature]["realization_filter"])))
+			specs_redshift[feature]["redshift_filter"] = " AND ".join(["{0}={1}".format(l,zi) for l in getattr(default_settings,feature).redshift_labels])
 	
 		#Append to list
 		splitted_specs.append(specs_redshift)
