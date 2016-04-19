@@ -35,6 +35,7 @@ options = {
 #Cosmological parameters
 "fiducial" : {"Om0" : 0.26, "w0" : -1. , "sigma8" : 0.8},
 "derivative_percentage" : 0.01 ,
+"parameters_rename" : {"Om0" : "Om" , "w0" : "w" , "sigma8" : "sigma8"} ,
 
 #Shape noise
 "add_shape_noise" : True,
@@ -97,12 +98,37 @@ def predict_power(options):
 	predicted_power.add_name("power_kk")
 	fisher = FisherAnalysis.from_features(predicted_power,cosmo_parameters)
 
-	#Calculate the Pkk covariance matrix assuming it is diagonal
-	fsky = options["fsky"]
-	diagonal_covariance_matrix = pd.Series(np.zeros(fisher["power_kk"].shape[1]),index=fisher[["power_kk"]].columns)
-	for n,l in enumerate(multipoles):
-		columns_to_fill = [ ("power_kk","l{0}-z{1}-z{2}".format(n,z1,z2)) for (z1,z2) in redshift_indices ] 
-		diagonal_covariance_matrix[columns_to_fill] = (fisher[columns_to_fill].iloc[fisher._fiducial])**2 / (fsky*(l+0.5))
-
 	#Return
-	return fisher,diagonal_covariance_matrix
+	return fisher
+
+
+#Calculate the single redshift constraints
+def singleZ_constraints(fisher,options):
+
+	#Multipole spacing
+	dl_bin = options["multipoles"][1] - options["multipoles"][0]
+
+	#Rows
+	rows = list()
+
+	#Cycle over redshift bins
+	for nz,zb in enumerate(options["zbins"]):
+
+		#Select the appropriate columns from the FisherAnalysis instance
+		fisher_singleZ = fisher.features({ "power_kk" : [ "l{0}-z{1}-z{1}".format(nl,nz) for nl in range(len(options["multipoles"])) ] })
+
+		#Estimate the covariance matrix and errorbars
+		singleZ_covariance = (fisher_singleZ["power_kk"].iloc[fisher._fiducial]**2) / (options["fsky"]*dl_bin*(0.5+options["multipoles"]))
+		parameter_covariance = fisher_singleZ.parameter_covariance(singleZ_covariance)
+
+		#Rename the columns for convenience
+		new_column_names = [ options["parameters_rename"][k] for k in parameter_covariance.columns ]
+
+		#Put the whole parameter covariance in a database
+		row = pd.Series(parameter_covariance.values.flatten(),index=["{0}-{1}".format(p1,p2) for (p1,p2) in itertools.product(*(new_column_names,)*2)])
+		row["bins"] = fisher_singleZ["power_kk"].shape[1]
+		row["feature_label"] = "power_spectrum_z{0}".format(nz+1)
+		rows.append(row)
+
+	#Return formed dataframe
+	return Ensemble.from_records(rows)
