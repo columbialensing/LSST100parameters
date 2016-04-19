@@ -560,7 +560,12 @@ class LSSTSimulationBatch(SimulationBatch):
 
 		super(LSSTSimulationBatch,self).__init__(*args,**kwargs)
 		self._models = self.models
-		self._fiducial = [ m for m in self._models if (m.cosmology.Om0==0.26 and m.cosmology.w0==-1 and m.cosmology.sigma8==0.8) ][0]
+		
+		try:
+			self._fiducial = [ m for m in self._models if (m.cosmology.Om0==0.26 and m.cosmology.w0==-1 and m.cosmology.sigma8==0.8) ][0]
+		except IndexError:
+			self._fiducial = None
+			
 		self._non_fiducial = [ m for m in self.models if (m.cosmology.Om0!=0.26 or m.cosmology.w0!=-1 or m.cosmology.sigma8!=0.8) ]
 
 	@property
@@ -569,6 +574,8 @@ class LSSTSimulationBatch(SimulationBatch):
 
 	@property 
 	def fiducial_cosmo_id(self):
+		if self.fiducial is None:
+			return None
 		return self.fiducial.cosmo_id
 
 	@property
