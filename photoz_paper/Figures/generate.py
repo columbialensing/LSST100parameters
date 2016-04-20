@@ -188,6 +188,42 @@ def constraints_no_pca_moments(cmd_args):
 ###################################################################################################
 ###################################################################################################
 
+#Comparison with NICAEA
+def sims_vs_nicaea(cmd_args,db_name="data/fisher/constraints_combine.sqlite",feature="power_spectrum",parameter="w",ylim=None,fontsize=22):
+
+	#Set up plot
+	fig,ax = plt.subplots()
+
+	#Axes bounds
+	if ylim is not None:
+		ax.set_ylim(*ylim)
+
+	#Plot the power spectrum 
+	with FisherDatabase(db_name) as db:
+		
+		#Query parameter variance obtained with the simulations
+		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise_no_pca'.format(parameter))
+		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,color="black",label=r"${\rm Simulations}$",alpha=0.3)
+
+		#Query parameter variance obtained with NICAEA
+		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise_nicaea'.format(parameter))
+		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="red",label=r"${\rm NICAEA}$")
+
+	#Axes labels
+	xticks = np.arange(len(var_feature))+0.5
+	ax.set_xticks(xticks)
+	ax.set_xticklabels([r"$\bar{z}_" + str(n+1) + r"$" for n in range(len(var_feature))],fontsize=fontsize)
+	ax.set_ylabel(r"$\Delta$"+par2label[parameter],fontsize=fontsize)
+	ax.legend(prop={"size":25})
+
+	#Save the figure
+	fig.savefig("sims_vs_nicaea_{0}.{1}".format(parameter,cmd_args.type))
+
+###################################################################################################
+###################################################################################################
+
 def pca_components(cmd_args,db_name="data/fisher/constraints_combine.sqlite",feature_label="power_spectrum_pca",parameter="w",fontsize=22):
 
 	#Use automatic plot routine
@@ -490,6 +526,8 @@ method["6"] = photoz_bias
 
 method["7"] = bias_vs_sigma
 method["table1"] = constraint_table
+
+method["t1"] = sims_vs_nicaea
 
 #Main
 def main():
