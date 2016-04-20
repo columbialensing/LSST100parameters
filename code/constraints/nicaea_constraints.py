@@ -148,7 +148,34 @@ def tomography_constraints(fisher,options):
 
 	#The tricky part is calculating the covariance matrix
 	power = fisher["power_kk"].iloc[fisher._fiducial].values
-	covariance_matrix = np.zeros(power.shape*2) 
+	covariance_matrix = analytical_power_covariance(power,multipoles,Nz,fsky)
+
+	#Add the column names to the covariance
+	covariance_matrix = Ensemble(covariance_matrix,index=fisher[["power_kk"]].columns,columns=fisher[["power_kk"]].columns)
+	
+	#Calculate the constraints
+	parameter_covariance = fisher.parameter_covariance(covariance_matrix)
+	new_column_names = [ options["parameters_rename"][k] for k in parameter_covariance.columns ]
+
+	#Format the row to insert in the database
+	row = pd.Series(parameter_covariance.values.flatten(),index=["{0}-{1}".format(p1,p2) for (p1,p2) in itertools.product(*(new_column_names,)*2)])
+	row["bins"] = fisher["power_kk"].shape[1]
+	row["feature_label"] = "power_spectrum"
+
+	#Return
+	return row
+
+
+#Analytical model for the power spectrum covariance matrix
+def analytical_power_covariance(power,multipoles,Nz,fsky):
+
+	#Safety
+	Nl = len(multipoles)
+	assert len(power)==Nl*Nz*(Nz+1)//2
+
+	#Allocate covariance matrix
+	covariance_matrix = np.zeros(power.shape*2)
+	dl_bin = multipoles[1]-multipoles[0]
 
 	#Build tables for symmetric index lookups
 	i,j = np.triu_indices(Nz,k=0)
@@ -174,30 +201,9 @@ def tomography_constraints(fisher,options):
 	#Ready to fill in the covariance matrix
 	for nl in range(Nl):
 		power_slice = power[nl*Nz*(Nz+1)//2:(nl+1)*Nz*(Nz+1)//2]
-		assert len(power_slice)==Nz*(Nz+1)//2
-
-		#The covariance matrix is modeled as Gaussian
 		covariance_matrix[nl*Nz*(Nz+1)//2:(nl+1)*Nz*(Nz+1)//2,nl*Nz*(Nz+1)//2:(nl+1)*Nz*(Nz+1)//2] = (power_slice[I1]*power_slice[J1]+power_slice[I2]*power_slice[J2]) / (fsky*dl_bin*(1+2*multipoles[nl]))
 
-	#Add the column names to the covariance
-	covariance_matrix = Ensemble(covariance_matrix,index=fisher[["power_kk"]].columns,columns=fisher[["power_kk"]].columns)
-	
-	#Calculate the constraints
-	parameter_covariance = fisher.parameter_covariance(covariance_matrix)
-	new_column_names = [ options["parameters_rename"][k] for k in parameter_covariance.columns ]
-
-	#Format the row to insert in the database
-	row = pd.Series(parameter_covariance.values.flatten(),index=["{0}-{1}".format(p1,p2) for (p1,p2) in itertools.product(*(new_column_names,)*2)])
-	row["bins"] = fisher["power_kk"].shape[1]
-	row["feature_label"] = "power_spectrum"
-
 	#Return
-	return row
-
-
-
-
-
-
+	return covariance_matrix
 
 
