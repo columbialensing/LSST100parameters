@@ -106,7 +106,9 @@ def predict_power(options):
 def singleZ_constraints(fisher,options):
 
 	#Multipole spacing
-	dl_bin = options["multipoles"][1] - options["multipoles"][0]
+	fsky = options["fsky"]
+	multipoles = options["multipoles"]
+	dl_bin = multipoles[1] - multipoles[0]
 
 	#Rows
 	rows = list()
@@ -118,7 +120,7 @@ def singleZ_constraints(fisher,options):
 		fisher_singleZ = fisher.features({ "power_kk" : [ "l{0}-z{1}-z{1}".format(nl,nz) for nl in range(len(options["multipoles"])) ] })
 
 		#Estimate the covariance matrix and errorbars
-		singleZ_covariance = (fisher_singleZ["power_kk"].iloc[fisher._fiducial]**2) / (options["fsky"]*dl_bin*(0.5+options["multipoles"]))
+		singleZ_covariance = (fisher_singleZ["power_kk"].iloc[fisher._fiducial]**2) / (fsky*dl_bin*(0.5+multipoles))
 		parameter_covariance = fisher_singleZ.parameter_covariance(singleZ_covariance)
 
 		#Rename the columns for convenience
@@ -132,3 +134,70 @@ def singleZ_constraints(fisher,options):
 
 	#Return formed dataframe
 	return Ensemble.from_records(rows)
+
+
+#Calculate the constraints with redshift tomography
+def tomography_constraints(fisher,options):
+
+	#Multipole spacing
+	Nz = len(options["zbins"])
+	multipoles = options["multipoles"]
+	Nl = len(multipoles)
+	dl_bin = multipoles[1] - multipoles[0]
+	fsky = options["fsky"]
+
+	#The tricky part is calculating the covariance matrix
+	power = fisher["power_kk"].iloc[fisher._fiducial].values
+	covariance_matrix = np.zeros(power.shape*2) 
+
+	#Build tables for symmetric index lookups
+	i,j = np.triu_indices(Nz,k=0)
+	lookup = dict()
+	
+	for n in range(Nz*(Nz+1)//2):
+		lookup[(i[n],j[n])] = n
+		lookup[(j[n],i[n])] = n
+
+	#Redshift indices mixing for the covariance matrix
+	I1 = np.zeros((Nz*(Nz+1)//2,)*2,dtype=np.int)
+	J1 = np.zeros_like(I1)
+	I2 = np.zeros_like(I1)
+	J2 = np.zeros_like(I1)
+
+	for k in range(Nz*(Nz+1)//2):
+		for l in range(Nz*(Nz+1)//2):
+			I1[k,l] = lookup[(i[k],j[l])]
+			J1[k,l] = lookup[(j[k],i[l])]
+			I2[k,l] = lookup[(i[k],i[l])]
+			J2[k,l] = lookup[(j[k],j[l])]
+
+	#Ready to fill in the covariance matrix
+	for nl in range(Nl):
+		power_slice = power[nl*Nz*(Nz+1)//2:(nl+1)*Nz*(Nz+1)//2]
+		assert len(power_slice)==Nz*(Nz+1)//2
+
+		#The covariance matrix is modeled as Gaussian
+		covariance_matrix[nl*Nz*(Nz+1)//2:(nl+1)*Nz*(Nz+1)//2,nl*Nz*(Nz+1)//2:(nl+1)*Nz*(Nz+1)//2] = (power_slice[I1]*power_slice[J1]+power_slice[I2]*power_slice[J2]) / (fsky*dl_bin*(1+2*multipoles[nl]))
+
+	#Add the column names to the covariance
+	covariance_matrix = Ensemble(covariance_matrix,index=fisher[["power_kk"]].columns,columns=fisher[["power_kk"]].columns)
+	
+	#Calculate the constraints
+	parameter_covariance = fisher.parameter_covariance(covariance_matrix)
+	new_column_names = [ options["parameters_rename"][k] for k in parameter_covariance.columns ]
+
+	#Format the row to insert in the database
+	row = pd.Series(parameter_covariance.values.flatten(),index=["{0}-{1}".format(p1,p2) for (p1,p2) in itertools.product(*(new_column_names,)*2)])
+	row["bins"] = fisher["power_kk"].shape[1]
+	row["feature_label"] = "power_spectrum"
+
+	#Return
+	return row
+
+
+
+
+
+
+
+
