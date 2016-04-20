@@ -206,15 +206,25 @@ def sims_vs_nicaea(cmd_args,db_name="data/fisher/constraints_combine.sqlite",fea
 		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
 		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,color="black",label=r"${\rm Simulations}$",alpha=0.3)
 
+		#Overlay the results obtained with PCA
+		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise WHERE bins=10'.format(parameter))
+		var_feature = var_db[var_db["feature_label"].str.contains(feature+"_pca_z")]["{0}-{0}".format(parameter)].values
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="green",label=r"${\rm Simulations(PCA)}$")
+
+		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise WHERE bins=70'.format(parameter))
+		var_feature = var_db[var_db["feature_label"].str.contains(feature+"_pca")]["{0}-{0}".format(parameter)].values
+		ax.bar(5,np.sqrt(var_feature),width=1,fill=False,edgecolor="green")
+
 		#Query parameter variance obtained with NICAEA
 		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise_nicaea'.format(parameter))
 		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
 		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="red",label=r"${\rm NICAEA}$")
 
+
 	#Axes labels
 	xticks = np.arange(len(var_feature))+0.5
 	ax.set_xticks(xticks)
-	ax.set_xticklabels([r"$\bar{z}_" + str(n+1) + r"$" for n in range(len(var_feature))],fontsize=fontsize)
+	ax.set_xticklabels([r"$\bar{z}_" + str(n+1) + r"$" for n in range(len(var_feature)-1)] + [r"${\rm Tomo}$"],fontsize=fontsize)
 	ax.set_ylabel(r"$\Delta$"+par2label[parameter],fontsize=fontsize)
 	ax.legend(prop={"size":25})
 
