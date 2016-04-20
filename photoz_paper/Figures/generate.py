@@ -206,6 +206,11 @@ def sims_vs_nicaea(cmd_args,db_name="data/fisher/constraints_combine.sqlite",fea
 		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
 		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,color="black",label=r"${\rm Simulations}$",alpha=0.3)
 
+		#Overlay the results obtained by zeroing out the multipole-multipole correlations
+		var_db = db.query('SELECT "{0}-{0}",bins,feature_label FROM pcov_noise_ps_block_diagonal'.format(parameter))
+		var_feature = var_db.sort_values("bins")["{0}-{0}".format(parameter)].values
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="blue",label=r"${\rm Simulations}(C_{l_1\neq l_2}=0)$")
+
 		#Overlay the results obtained with PCA
 		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise WHERE bins=10'.format(parameter))
 		var_feature = var_db[var_db["feature_label"].str.contains(feature+"_pca_z")]["{0}-{0}".format(parameter)].values
