@@ -1,3 +1,5 @@
+from __future__ import division
+
 import os
 import argparse,logging
 import itertools
@@ -179,6 +181,22 @@ def split_redshifts(specs,redshift_index=range(5)):
 	#Return to user
 	return splitted_specs
 
+#Make the covariance matrix block diagonal
+def block_mask(Nb,block=15):
+
+	#Safety
+	if Nb%block!=0:
+		raise ValueError("The block size must divide the matrix size exactly")
+
+	step = Nb//block
+
+	#Create the mask
+	mask = np.zeros((Nb,)*2,dtype=np.int8)
+	for n in range(step):
+		mask[n*block:(n+1)*block,n*block:(n+1)*block] = 1
+
+	#Return
+	return mask
 
 ################################################
 #######Cosmological constraints driver##########
@@ -432,6 +450,12 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 			#Compute the feature covariance matrix
 			logdriver.info("Computing the {0}x{0} feature covariance matrix, Nreal={1}, NLSST={2}...".format(covariance_pca.shape[1],specs["realizations_for_covariance"],settings.covariance_to_lsst))
 			feature_covariance = covariance_pca.head(specs["realizations_for_covariance"]).cov() / settings.covariance_to_lsst
+
+			#Reserve the possibility of zeroing out some of the off diagonal elements of the covariance (to make it block diagonal)
+			if "covariance_block_size" in specs:
+				logdriver.info("Making the feature covariance block-diagonal with {0}x{0} sized blocks".format(specs["covariance_block_size"]))
+				mask = block_mask(len(feature_covariance),specs["covariance_block_size"])
+				feature_covariance.values[mask==0] = 0
 
 			#Compute the parameter covariance matrix correcting for the inverse covariance bias
 			logdriver.info("Computing {0}x{0} parameter covariance matrix, Nbins={1}...".format(len(pnames),covariance_pca.shape[1]))
