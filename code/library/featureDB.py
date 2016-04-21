@@ -7,7 +7,7 @@ import sys,os,re
 from itertools import product
 
 from lenstools.catalog import ShearCatalog
-from lenstools.statistics.ensemble import Ensemble
+from lenstools.statistics.ensemble import Ensemble, SquareMatrix
 from lenstools.statistics.database import Database
 from lenstools.pipeline.simulation import SimulationBatch
 
@@ -425,7 +425,7 @@ class FisherDatabase(Database):
 
 		#Cast the row into a matrix
 		pcov = query_row.values.reshape((len(parameters),)*2)
-		return self._constructor_ensemble(pcov,index=parameters,columns=parameters)
+		return SquareMatrix(pcov,index=parameters,columns=parameters)
 
 	#Retrieve the variance of a single parameter for a single feature_label
 	def query_parameter_simple(self,feature_label,table_name="pcov",parameter="w"):
