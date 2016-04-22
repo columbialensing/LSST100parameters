@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import division
 
 import sys,os,argparse
 sys.modules["mpi4py"] = None
@@ -10,6 +11,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from lenstools.catalog.shear import Catalog
+
+from lenstools.statistics.ensemble import SquareMatrix
 from lenstools.statistics.constraints import FisherAnalysis
 from lenstools.simulations.design import Design
 
@@ -125,7 +128,7 @@ def scibook_photo(cmd_args,fontsize=22):
 ###################################################################################################
 ###################################################################################################
 
-def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite",feature="power_spectrum",base_color="black",pca_components=[5,10],colors=["red","blue","green"],parameter="w",ylim=None,fontsize=22):
+def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite",feature="power_spectrum",base_color="black",tomo_color="magenta",pca_components=[5,10],colors=["red","blue","green"],parameter="w",ylim=None,fontsize=22):
 
 	#Set up plot
 	fig,ax = plt.subplots()
@@ -157,16 +160,15 @@ def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite"
 		#Plot tomographic constraint with the maximum number of pca components
 		var_db = db.query('SELECT "{0}-{0}",bins,feature_label FROM pcov_noise'.format(parameter))
 		var_feature_tomo,nc,label = var_db.query("feature_label=='{0}'".format(feature+"_pca")).tail(1).values.flat
-		ax.bar(5,np.sqrt(var_feature_tomo),width=2,color=base_color)
+		ax.bar(5,np.sqrt(var_feature_tomo),width=1,fill=False,edgecolor=tomo_color,label=r"$(N_c={0})$".format(int(nc)))
 
 		#Put a percent value on the last bar of the graph
 		#ax.text(5.5,np.sqrt(var_highest_z),r"$-{0}\%$".format(int(100*(np.sqrt(var_highest_z/var_feature_tomo)-1))),fontsize=fontsize)
 
 	#Axes labels
 	xticks = np.arange(len(var_feature)+1)+0.5
-	xticks[-1] += 0.5
 	ax.set_xticks(xticks)
-	ax.set_xticklabels([r"$\bar{z}_" + str(n+1) + r"$" for n in range(len(var_feature))] + [r"${\rm Tomo}$"+r"$(N_c={0})$".format(int(nc))],fontsize=fontsize)
+	ax.set_xticklabels([r"$\bar{z}_" + str(n+1) + r"$" for n in range(len(var_feature))] + [r"${\rm Tomo}$"],fontsize=fontsize)
 	ax.set_ylabel(r"$\Delta$"+par2label[parameter],fontsize=fontsize)
 	ax.legend(prop={"size":25})
 
@@ -204,26 +206,21 @@ def sims_vs_nicaea(cmd_args,db_name="data/fisher/constraints_combine.sqlite",fea
 		#Query parameter variance obtained with the simulations
 		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise_no_pca'.format(parameter))
 		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
-		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,color="black",label=r"${\rm Simulations}$",alpha=0.3)
-
-		#Overlay the results obtained by zeroing out the multipole-multipole correlations
-		var_db = db.query('SELECT "{0}-{0}",bins,feature_label FROM pcov_noise_ps_block_diagonal'.format(parameter))
-		var_feature = var_db.sort_values("bins")["{0}-{0}".format(parameter)].values
-		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="blue",label=r"${\rm Simulations}(C_{l_1\neq l_2}=0)$")
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,color="black",label=r"${\rm No}$ ${\rm PCA}$",alpha=0.3)
 
 		#Overlay the results obtained with PCA
 		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise WHERE bins=10'.format(parameter))
 		var_feature = var_db[var_db["feature_label"].str.contains(feature+"_pca_z")]["{0}-{0}".format(parameter)].values
-		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="green",label=r"${\rm Simulations(PCA)}$")
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="red",label=r"$N_c=10$")
 
 		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise WHERE bins=70'.format(parameter))
 		var_feature = var_db[var_db["feature_label"].str.contains(feature+"_pca")]["{0}-{0}".format(parameter)].values
-		ax.bar(5,np.sqrt(var_feature),width=1,fill=False,edgecolor="green")
+		ax.bar(5,np.sqrt(var_feature),width=1,fill=False,edgecolor="magenta",label=r"$N_c=70$")
 
 		#Query parameter variance obtained with NICAEA
 		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise_nicaea'.format(parameter))
 		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
-		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="red",label=r"${\rm NICAEA}$")
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="black",linestyle="--",label=r"${\rm NICAEA}$")
 
 
 	#Axes labels
@@ -234,7 +231,7 @@ def sims_vs_nicaea(cmd_args,db_name="data/fisher/constraints_combine.sqlite",fea
 	ax.legend(prop={"size":25})
 
 	#Save the figure
-	fig.savefig("sims_vs_nicaea_{0}.{1}".format(parameter,cmd_args.type))
+	fig.savefig("{0}_{1}_no_pca.{2}".format(parameter,feature,cmd_args.type))
 
 ###################################################################################################
 ###################################################################################################
@@ -265,27 +262,31 @@ def pca_components_moments(cmd_args):
 
 feature_properties = {
 
-"ps" : {"name":"power_spectrum_pca","table_name" : "pcov_noise", "pca_components" : 30, "color" : "red", "label" : r"$P^{\kappa\kappa}(30)$","linestyle" : "-", "marker" : "x"},
-"ps70" : {"name":"power_spectrum_pca","table_name" : "pcov_noise", "pca_components" : 70, "color" : "red", "label" : r"$P^{\kappa\kappa}(70)$","linestyle" : "--", "marker" : "+"},
+"ps" : {"name":"power_spectrum_pca","table_name" : "pcov_noise", "pca_components" : 30, "color" : "red", "label" : r"$P^{\kappa\kappa}(N_c=30)$","linestyle" : "--", "marker" : "x"},
+"ps70" : {"name":"power_spectrum_pca","table_name" : "pcov_noise", "pca_components" : 70, "color" : "red", "label" : r"$P^{\kappa\kappa}(N_c=70)$","linestyle" : "-", "marker" : "+"},
 
-"mu" : {"name":"moments_pca","table_name" : "pcov_noise", "pca_components" : 30, "color" : "blue", "label" : r"$\mathbf{\mu}(30)$","linestyle" : "-", "marker" : "x"},
-"mu40" : {"name":"moments_pca","table_name" : "pcov_noise", "pca_components" : 40, "color" : "blue", "label" : r"$\mathbf{\mu}(40)$","linestyle" : "--", "marker" : "+"},
+"mu" : {"name":"moments_pca","table_name" : "pcov_noise", "pca_components" : 30, "color" : "blue", "label" : r"$\mathbf{\mu}(N_c=30)$","linestyle" : "--", "marker" : "x"},
+"mu40" : {"name":"moments_pca","table_name" : "pcov_noise", "pca_components" : 40, "color" : "blue", "label" : r"$\mathbf{\mu}(N_c=40)$","linestyle" : "-", "marker" : "+"},
 
-"pk" : {"name":"peaks_pca", "table_name": "pcov_noise", "pca_components" : 40, "color" : "green", "label" : r"$n_{\rm pk}(40)$","linestyle" : "-", "marker" : "x"},
-"pk70" : {"name":"peaks_pca", "table_name": "pcov_noise", "pca_components" : 70, "color" : "green", "label" : r"$n_{\rm pk}(70)$","linestyle" : "--", "marker" : "+"},
+"pk" : {"name":"peaks_pca", "table_name": "pcov_noise", "pca_components" : 40, "color" : "green", "label" : r"$n_{\rm pk}(N_c=40)$","linestyle" : "--", "marker" : "x"},
+"pk70" : {"name":"peaks_pca", "table_name": "pcov_noise", "pca_components" : 70, "color" : "green", "label" : r"$n_{\rm pk}(N_c=70)$","linestyle" : "-", "marker" : "+"},
 
-"ps+pk" : {"name" : "power_spectrum+peaks" , "table_name" : "pcov_noise_combine", "pca_components" : 30+40, "color" : "orange", "label" : r"$P^{\kappa\kappa}(30)+n_{\rm pk}(40)$","linestyle" : "-", "marker" : "x"},
-"ps+mu" : {"name" : "power_spectrum+moments" , "table_name" : "pcov_noise_combine", "pca_components" : 30+30, "color" : "purple", "label" : r"$P^{\kappa\kappa}(30)+\mathbf{\mu}(30)$","linestyle" : "-", "marker" : "x"},
-"ps+pk+mu" : {"name" : "power_spectrum+peaks+moments" , "table_name" : "pcov_noise_combine", "pca_components" : 30+30+40, "color" : "black", "label" : r"$P^{\kappa\kappa}(30)+n_{\rm pk}(40)+\mathbf{\mu}(30)$","linestyle" : "-", "marker" : "x"}
+"ps+pk" : {"name" : "power_spectrum+peaks" , "table_name" : "pcov_noise_combine", "pca_components" : 30+40, "color" : "orange", "label" : r"$P^{\kappa\kappa}(N_c=30)+n_{\rm pk}(N_c=40)$","linestyle" : "-", "marker" : "x"},
+"ps+mu" : {"name" : "power_spectrum+moments" , "table_name" : "pcov_noise_combine", "pca_components" : 30+30, "color" : "purple", "label" : r"$P^{\kappa\kappa}(N_c=30)+\mathbf{\mu}(N_c=30)$","linestyle" : "-", "marker" : "x"},
+"ps+pk+mu" : {"name" : "power_spectrum+peaks+moments" , "table_name" : "pcov_noise_combine", "pca_components" : 30+30+40, "color" : "black", "label" : r"$P^{\kappa\kappa}(N_c=30)+n_{\rm pk}(N_c=40)+\mathbf{\mu}(N_c=30)$","linestyle" : "-", "marker" : "x"}
 
 }
 
-def parameter_constraints(cmd_args,db_name="data/fisher/constraints_combine.sqlite",features_to_show=["ps","ps70","pk","pk70","mu","mu40","ps+pk","ps+mu","ps+pk+mu"],parameters=["Om","w"],xlim=(0.25,0.27),ylim=(-1.06,-0.94),fontsize=22):
+def parameter_constraints(cmd_args,db_name="data/fisher/constraints_combine.sqlite",features_to_show=["ps","ps70","pk","pk70","mu","mu40","ps+pk","ps+mu","ps+pk+mu"],parameters=["Om","w"],all_parameters=["Om","w","sigma8"],xlim=(0.252,0.267),ylim=(-1.04,-0.96),cmb_prior_fisher=None,suffix="lensing",fontsize=22):
 
 	#Init figure
 	fig,ax = plt.subplots()
 	ellipses = list()
 	labels = list()
+
+	#CMB prior
+	if cmb_prior_fisher is not None:
+		fisher_cmb = SquareMatrix.read(cmb_prior_fisher)[all_parameters]
 
 	#Plot the features 
 	with FisherDatabase(db_name) as db:
@@ -303,6 +304,20 @@ def parameter_constraints(cmd_args,db_name="data/fisher/constraints_combine.sqli
 			ellipses.append(ellipse)
 			labels.append(feature_properties[f]["label"])
 
+			#If there is a CMB prior to include, add the fisher matrices
+			if cmb_prior_fisher is not None:
+
+				#Fisher matrix addition in quadrature
+				pcov_lensing = db.query_parameter_covariance(feature_properties[f]["name"],nbins=feature_properties[f]["pca_components"],table_name=feature_properties[f]["table_name"],parameters=all_parameters)
+				pcov_lensing_cmb = (pcov_lensing.invert() + fisher_cmb).invert()[parameters]
+
+				#Add additional ellipses for the constraints with prior
+				ax.add_artist(FisherAnalysis.ellipse(center=center,covariance=pcov_lensing_cmb.values,p_value=0.677,fill=False,edgecolor=feature_properties[f]["color"],linestyle=feature_properties[f]["linestyle"],linewidth=4))
+
+	#Plot the CMB ellipse too
+	#if cmb_prior_fisher is not None:
+		#ax.add_artist(FisherAnalysis.ellipse(center=center,covariance=fisher_cmb.invert()[parameters].values,p_value=0.677,color="black",alpha=0.3))
+
 	#Axes bounds
 	ax.set_xlim(*xlim)
 	ax.set_ylim(*ylim)
@@ -310,10 +325,14 @@ def parameter_constraints(cmd_args,db_name="data/fisher/constraints_combine.sqli
 	#Axes labels and legend
 	ax.set_xlabel(par2label[parameters[0]],fontsize=fontsize)
 	ax.set_ylabel(par2label[parameters[1]],fontsize=fontsize)
-	ax.legend(ellipses,labels,bbox_to_anchor=(0.,1.02,1.,.102),loc=3,ncol=3,mode="expand",borderaxespad=0.)
+	ax.legend(ellipses,labels,prop={"size" : 20},bbox_to_anchor=(0.,1.02,1.,.102),loc=3,ncol=len(features_to_show)//4,mode="expand",borderaxespad=0.)
 
 	#Save figure
-	fig.savefig("constraints_{0}.{1}".format("-".join(parameters),cmd_args.type))
+	fig.savefig("constraints_{0}_{1}.{2}".format("-".join(parameters),suffix,cmd_args.type))
+
+
+def parameter_constraints_with_cmb(cmd_args):
+	parameter_constraints(cmd_args,features_to_show=["ps70","pk70","mu40","ps+pk","ps+mu","ps+pk+mu"],cmb_prior_fisher="data/planck/planck_base_w_TT_lowTEB.pkl",suffix="lensing_cmb")
 
 ###################################################################################################
 ###################################################################################################
@@ -322,6 +341,10 @@ def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",paramet
 	
 	#Init figure
 	fig,ax = plt.subplots()
+
+	#Ellipses and labels
+	ellipses = list()
+	labels = list()
 
 	#Cycle over features
 	for f in features_to_show:
@@ -332,6 +355,7 @@ def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",paramet
 		color = feature_properties[f]["color"]
 		plot_label = feature_properties[f]["label"]
 		marker = feature_properties[f]["marker"]
+		linestyle = feature_properties[f]["linestyle"]
 
 		############
 		#No photo-z#
@@ -348,13 +372,15 @@ def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",paramet
 		with FisherDatabase(db_name) as db:
 			pfit = db.query_parameter_fit(feature_label,table_name="mocks_photoz_requirement",parameters=parameters).query("bins=={0}".format(nbins))
 			p1,p2 = [ pfit[parameters[n]+"_fit"].values for n in [0,1] ]
-			ax.scatter(p1-p1f,p2-p2f,color=color,marker=marker,label=plot_label)
+			ax.scatter(p1-p1f,p2-p2f,color=color,marker=marker)
 			ax.scatter((p1-p1f).mean(),(p2-p2f).mean(),color=color,marker="s",s=60)
 
 			#Draw an error ellipse around the mean bias
 			center = ((p1-p1f).mean(),(p2-p2f).mean())
 			pcov = np.cov([p1-p1f,p2-p2f]) 
-			ax.add_artist(FisherAnalysis.ellipse(center,pcov,p_value=0.677,fill=False,edgecolor=color))
+			ellipses.append(FisherAnalysis.ellipse(center,pcov,p_value=0.677,fill=False,edgecolor=color,linestyle=linestyle))
+			ax.add_artist(ellipses[-1])
+			labels.append(plot_label)
 
 	#Get axes bounds
 	xlim = np.abs(np.array(ax.get_xlim())).max()
@@ -371,7 +397,7 @@ def photoz_bias(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",paramet
 	#Legends
 	ax.set_xlabel(r"$\delta$" + par2label[parameters[0]],fontsize=fontsize)
 	ax.set_ylabel(r"$\delta$" + par2label[parameters[1]],fontsize=fontsize)
-	ax.legend(loc="upper right",prop={"size":25})
+	ax.legend(ellipses,labels,loc="upper right",prop={"size":25})
 
 	#Save figure
 	fig.savefig("photoz_bias_{0}.{1}".format("-".join(parameters),cmd_args.type))
@@ -477,35 +503,44 @@ rows = {
 
 columns = {
 	
-	"labels" : [r"$\Delta \Omega_m$",r"$\Delta w$",r"$\Delta \sigma_8$",r"$\sqrt[3]{\rm Area}$ $(\Omega_m,w,\sigma_8)$"] ,
-	r"$\Delta \Omega_m$" : lambda r:np.sqrt(r["Om-Om"]),
-	r"$\Delta w$" : lambda r:np.sqrt(r["w-w"]),
-	r"$\Delta \sigma_8$" : lambda r:np.sqrt(r["sigma8-sigma8"]),
-	r"$\sqrt[3]{\rm Area}$ $(\Omega_m,w,\sigma_8)$" : lambda r: np.linalg.det(r[ [pi+"-"+pj for pi,pj in itertools.product(*(["Om","w","sigma8"],)*2)] ].values.reshape(3,3).astype(np.float))**(1/6.)
+	"labels" : [r"$\Delta \Omega_m$",r"$\Delta w$",r"$\Delta \sigma_8$",r"$10^4\sqrt[3]{\rm Volume}$ $(\Omega_m,w,\sigma_8)$"] ,
+	r"$\Delta \Omega_m$" : lambda pcov:np.sqrt(pcov["Om"]),
+	r"$\Delta w$" : lambda pcov:np.sqrt(pcov["w"]),
+	r"$\Delta \sigma_8$" : lambda pcov:np.sqrt(pcov["sigma8"]),
+	r"$10^4\sqrt[3]{\rm Volume}$ $(\Omega_m,w,\sigma_8)$" : lambda pcov: int(1.0e4*np.linalg.det(pcov.values)**(1/6.))
 
 }
 
 #Table with errors, ellipse contours, etc...
-def constraint_table(cmd_args,db_name="data/fisher/constraints_combine.sqlite",print_to=sys.stdout,features_to_show=["ps5","ps-tomo","peaks5","peaks-tomo","moments5","moments-tomo","ps+pk","ps+mu","ps+pk+mu"],rows=rows,columns=columns):
+def constraint_table(cmd_args,db_name="data/fisher/constraints_combine.sqlite",cmb_prior_fisher=None,print_to=sys.stdout,features_to_show=["ps5","ps-tomo","peaks5","peaks-tomo","moments5","moments-tomo","ps+pk","ps+mu","ps+pk+mu"],all_parameters=["Om","w","sigma8"],rows=rows,columns=columns):
 
 	#Prepare the Table with the appropriate number of rows and columns
 	table = pd.DataFrame([rows[r]["label"] for r in features_to_show],columns=["Statistic"])
 	for c in columns["labels"]:
 		table[c] = None
 
+	#CMB prior
+	if cmb_prior_fisher is not None:
+		fisher_cmb = SquareMatrix.read(cmb_prior_fisher)[all_parameters]
+
 	#Query the database and fill in the data
 	with FisherDatabase(db_name) as db:
 		for nf,feature in enumerate(features_to_show):
 
-			#Query the entire row
+			#Query the parameter covariance matrix
 			name = rows[feature]["name"]
 			db_table_name = rows[feature]["table_name"]
 			nbins = rows[feature]["bins"] 
-			full_row = db.query('SELECT * FROM {0} WHERE feature_label="{1}" AND bins={2}'.format(db_table_name,name,nbins))
+
+			pcov = db.query_parameter_covariance(feature_label=name,nbins=nbins,parameters=all_parameters,table_name=db_table_name)
+
+			#Maybe apply the prior
+			if cmb_prior_fisher is not None:
+				pcov = (pcov.invert() + fisher_cmb).invert()
 
 			#Select entries in the row to put in the table
 			for c in columns["labels"]:
-				table[c].iloc[nf] = full_row.apply(columns[c],axis=1).values[0]
+				table[c].iloc[nf] = columns[c](pcov)
 
 	#Output the table
 	latex_kwargs = {"escape":False,"index":False,"float_format":lambda n:"{0:.4f}".format(n)}
@@ -516,6 +551,9 @@ def constraint_table(cmd_args,db_name="data/fisher/constraints_combine.sqlite",p
 	else:
 		with open(print_to,"w") as fp:
 			fp.write(table.to_latex(**latex_kwargs))
+
+def constraint_table_cmb(cmd_args):
+	constraint_table(cmd_args,cmb_prior_fisher="data/planck/planck_base_w_TT_lowTEB.pkl")
 
 
 ###################################################################################################
@@ -532,17 +570,19 @@ method["3a"] = pca_components_power_spectrum
 method["3b"] = pca_components_peaks
 method["3c"] = pca_components_moments
 
-method["4a"] = constraints_no_pca_power
+method["4a"] = sims_vs_nicaea
 method["4b"] = constraints_no_pca_peaks
 method["4c"] = constraints_no_pca_moments
 
 method["5"] = parameter_constraints
+method["5b"] = parameter_constraints_with_cmb
+
 method["6"] = photoz_bias
 
 method["7"] = bias_vs_sigma
-method["table1"] = constraint_table
 
-method["t1"] = sims_vs_nicaea
+method["table1"] = constraint_table
+method["table2"] = constraint_table_cmb
 
 #Main
 def main():

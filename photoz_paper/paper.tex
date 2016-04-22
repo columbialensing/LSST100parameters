@@ -256,6 +256,25 @@ where $L$ is $P\times Q$, $\bb{\Lambda}={\rm diag}(\Lambda_1,...,\Lambda_Q)$ and
 \end{equation} 
 %
 In this way we hope to capture the cosmological information contained in $\bbh{d}$ by projecting it on the $N_c<N_b$ principal components that vary the most with cosmology parameters. In the next section we outline the main results of this work.  
+
+%%%%%%%%
+
+\subsection{Priors from CMB experiments}
+In this paragraph we describe how we included prior knowledge of cosmological parameters from previous Cosmic Microwave Background (CMB) observations, such as Planck \citep{PlanckCosmo}. CMB experiments provide tight constraints on $(\Omega_m,\sigma_8)$, but they are not sensitive to dark energy parameters such as $w$. Nevertheless, prior knowledge of $\Omega_m$ and $\sigma_8$ could in principle help in breaking degeneracies between these parameters and $w$ in weak lensing observations. The CMB parameter prior probability function can be written as 
+\begin{equation}
+-2\log\mathcal{L}_{\rm CMB}(\bb{p}) = (\bb{p} - \bb{p}_0)^T\bb{F}_{\rm CMB}(\bb{p} - \bb{p}_0)
+\end{equation}
+%
+where we assumed that the best fit parameters are the same $\bb{p}_0$ that appear in equation (\ref{meth:linapprox}). 
+Parameter constraints from the Planck CMB experiment are made available to the public via the parameter Markov Chains (MCMC) published on the Planck Legacy Archive \footnote{\url{http://pla.esac.esa.int/pla/}}. We can use these MCMC data to estimate the parameter covariance matrix $\bb{\Sigma}_{\rm CMB}$ on the parameter multiplet $(\Omega_m,\Omega_bh^2,\theta_{\rm MC},\tau,w,n_s,\sigma_8)$, marginalized over the Planck nuisance parameters. We then compute the parameter prior Fisher matrix $\bb{F}_{\rm CMB} = \bb{\Sigma}_{\rm CMB}^{-1}$. Fixing the values of all parameters but $(\Omega_m,w,\sigma_8)$ and applying the prior to the weak lensing parameter likelihood (\ref{meth:paramlikelihood}) is equivalent to taking the $(\Omega_m,w,\sigma_8)$ slice of $\bb{F}_{\rm CMB}$, which we call $\bb{F}_{\rm CMB}^{(\Omega_m,w,\sigma_8)}$, and computing the parameters constraints subject to the CMB prior as 
+
+\begin{equation}
+\label{meth:parcovestimator_cmb}
+\bbh{\Sigma}_{\rm lens+CMB} = \left(\bb{M}^T\bbh{\Psi}\bb{M} + \bb{F}_{\rm CMB}^{(\Omega_m,w,\sigma_8)}\right)^{-1}
+\end{equation}
+%
+In the next section we describe the main results of this work. 
+
 %%%%%%%%%%%%%%%%%%%%%%% RESULTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Results}
@@ -273,13 +292,22 @@ We bin the convergence peak counts in 30 uniformly spaced $\nu$ bins between $(\
 
 The forecast error bars on $w$ are calculated according to equation (\ref{meth:parcovestimator}), where the covariance matrix $\bbh{C}$ and its inverse $\bbh{\Psi}$ have been estimated with $N_r=16000$ realizations of each summary statistic in the fiducial cosmology.
 
-Figure \ref{fig:nopca} shows a comparison between the $w$ constraints obtained using single redshift bins, with and without PCA dimensionality reduction, and compares these single redshift constraints with the ones obtained using redshift tomography. 
+Figure \ref{fig:nopca} shows a comparison between the $w$ constraints obtained using single redshift bins, with and without PCA dimensionality reduction, and compares these single redshift constraints with the ones obtained using redshift tomography. When we calculate parameter inferences using the convergence power spectrum $P^{\kappa\kappa}$, we can cross check the results obtained with our simulations with the ones obtained with the analytical code NICAEA \citep{Nicaea}. This code allows to predict the convergence power spectrum as a function of cosmological parameters $\bb{p}$, for an arbitrary galaxy redshift distribution $n(z)$. Parameter inferences can be obtained from the NICAEA predictions for $P^{\kappa\kappa}(\ell,z_i,z_j)$ (where $\{z_i\}$ are the centers of the redshift bins) using equation (\ref{meth:parcovestimator}). To proceed in the calculations we approximate the $P^{\kappa\kappa}$ covariance matrix with the one one would obtain in the limit in which the $\kappa(\pmb{\theta})$ field is Gaussian
+
+\begin{widetext}
+\begin{equation}
+\label{meth:gausspcov}
+\left\langle\delta\h{P}_\ell(z_1,z_2)\delta\h{P}_\ell(z_3,z_4)\right\rangle = \frac{P_\ell(z_1,z_3)P_\ell(z_2,z_4)+P_\ell(z_1,z_4)P_\ell(z_2,z_3)}{f_{\rm sky}\delta\ell_{\rm bin}(2\ell+1)}
+\end{equation} 
+\end{widetext}
+%
+where $P_\ell(z_1,z_2)$ is a shorthand for $P^{\kappa\kappa}(\ell,z_1,z_2)$, $\delta\h{P}_\ell(z_1,z_2)=\h{P}_\ell(z_1,z_2) - P_\ell(z_1,z_2)$ is the scatter in the $\h{P}$ estimator, $\delta\ell_{\rm bin}$ is the width of the linearly spaced multipole bands and $f_{\rm sky} = \theta^2_{\rm FOV}/4\pi$ is the sky coverage fraction of one field of view. In this approximation the cross variance terms between different multipoles are assumed to be zero.   
 
 \begin{figure*}
 \includegraphics[scale=0.3]{Figures/w_power_spectrum_no_pca.pdf}
 \includegraphics[scale=0.3]{Figures/w_peaks_no_pca.pdf}
 \includegraphics[scale=0.3]{Figures/w_moments_no_pca.pdf}
-\caption{Comparison between single redshift $w$ constraints (marginalized over $(\Omega_m,\sigma_8)$) obtained without PCA (gray shaded bars) and with PCA (colored bars) as a function of the redshift bin $\bar{z}_b$. The rightmost black bar shows the same constraint, but obtained with redshift tomography and using the maximum number of PCA components seen in Figure \ref{fig:pcacomponents}. We show constrained obtained with the power spectrum (top right), peak counts (top left) and moments (bottom).}
+\caption{Comparison between single redshift $w$ constraints (marginalized over $(\Omega_m,\sigma_8)$) obtained without PCA (gray shaded bars) and with PCA (colored bars) as a function of the redshift bin $\bar{z}_b$. The rightmost black bar shows the same constraint, but obtained with redshift tomography and using the maximum number of PCA components seen in Figure \ref{fig:pcacomponents}. We show constrained obtained with the power spectrum (top right), peak counts (top left) and moments (bottom). The black dashed lines in the top left panel refer to parameter constraints on $w$ obtained with the public code NICAEA \citep{Nicaea}, assuming a Gaussian covariance model for the power spectrum, as specified by equation (\ref{meth:gausspcov}). }
 \label{fig:nopca}
 \end{figure*}
 
@@ -287,30 +315,51 @@ Figure \ref{fig:constraintsOm-w} shows the $1\sigma$ confidence contours on the 
 
 Figure \ref{fig:photozbias} shows the effect of ignoring photo-$z$ errors on parameter constraints. To evaluate this effect we construct different simulated observations, with and without photo-$z$ effects, and compare the results of the parameter fit according to equation (\ref{meth:parestimate}). Using our simulation suite, we construct 20 simulated observations: the summary statistic in each observation is calculated by taking the mean of a random sample of $N_{\rm FOV}$ realizations of the summary statistic in the fiducial cosmology (randomly chosen among the ensemble of $N_r=16000$ that are available in the ensemble). The estimated covariance matrix $\bbh{C}$ is scaled by a factor $N_{\rm FOV}$ to take into account the construction process of the simulated observations. This procedure allows to forecast the results an LSST-like survey would obtain.        
 
-\begin{figure}
-\includegraphics[scale=0.3]{Figures/constraints_Om-w.eps}
-\caption{$1\sigma$ confidence contours on the $(\Omega_m,w)$ parameter space, marginalized over $\sigma_8$, obtained using equation (\ref{meth:parcovestimator}). The covariance matrix $\bbh{C}$ and its inverse $\bbh{\Psi}$ have been obtained using $16000$ summary statistics realizations, and has been scaled by a factor $N_{\rm FOV}=1600$ to mimic the constraining power of an LSST-like survey.}
+\begin{figure*}
+\includegraphics[scale=0.3]{Figures/constraints_Om-w_lensing.eps}
+\includegraphics[scale=0.3]{Figures/constraints_Om-w_lensing_cmb.eps}
+\caption{$1\sigma$ confidence contours on the $(\Omega_m,w)$ parameter space, marginalized over $\sigma_8$, obtained using equation (\ref{meth:parcovestimator}). The covariance matrix $\bbh{C}$ and its inverse $\bbh{\Psi}$ have been obtained using $16000$ summary statistics realizations, and has been scaled by a factor $N_{\rm FOV}=1600$ to mimic the constraining power of an LSST-like survey. The thick line ellipses in the right panel refer to $(\Omega_m,w)$ obtained from the weak lensing statistics considered in this work, but subject to Planck priors as described in equation (\ref{meth:parcovestimator_cmb}).}
 \label{fig:constraintsOm-w}
-\end{figure}
+\end{figure*}
 
 \begin{table*}
 \begin{tabular}{c|c|c|c|c|}
 \toprule
-                        \textbf{Statistic} & $\Delta \Omega_m$ & $\Delta w$ & $\Delta \sigma_8$ & $\sqrt[3]{\rm Volume}$ $(\Omega_m,w,\sigma_8)$ \\ \hline \hline
+                        \textbf{Statistic} & $\Delta \Omega_m$ & $\Delta w$ & $\Delta \sigma_8$ & $10^4\sqrt[3]{\rm Volume}$ $(\Omega_m,w,\sigma_8)$ \\ \hline \hline
 \midrule
-     Power spectrum ($\bar{z}_5$) &            0.0222 &     0.0286 &            0.0298 &                                       0.0087 \\
-      Power spectrum (tomography) &            0.0038 &     0.0213 &            0.0060 &                                       0.0042 \\
-              Peaks ($\bar{z}_5$) &            0.0049 &     0.0316 &            0.0050 &                                       0.0046 \\
-               Peaks (tomography) &            0.0042 &     0.0271 &            0.0043 &                                       0.0050 \\
-            Moments ($\bar{z}_5$) &            0.0027 &     0.0276 &            0.0026 &                                       0.0034 \\
-             Moments (tomography) &            0.0020 &     0.0214 &            0.0020 &                                       0.0028 \\ \hline \hline
-           Power spectrum + peaks &            0.0021 &     0.0153 &            0.0026 &                                       0.0030 \\ 
-         Power spectrum + moments &            0.0016 &     0.0150 &            0.0019 &                                       0.0025 \\
- Power spectrum + peaks + moments &            0.0015 &     0.0121 &            0.0018 &                                       0.0023 \\ \hline
+     Power spectrum ($\bar{z}_5$) &            0.0222 &     0.0286 &            0.0298 &                                                 86 \\
+      Power spectrum (tomography) &            0.0038 &     0.0213 &            0.0060 &                                                 42 \\
+              Peaks ($\bar{z}_5$) &            0.0049 &     0.0316 &            0.0050 &                                                 46 \\
+               Peaks (tomography) &            0.0042 &     0.0271 &            0.0043 &                                                 49 \\
+            Moments ($\bar{z}_5$) &            0.0027 &     0.0276 &            0.0026 &                                                 33 \\
+             Moments (tomography) &            0.0020 &     0.0214 &            0.0020 &                                                 28 \\ \hline \hline
+           Power spectrum + peaks &            0.0021 &     0.0153 &            0.0026 &                                                 29 \\
+         Power spectrum + moments &            0.0016 &     0.0150 &            0.0019 &                                                 24 \\
+ Power spectrum + peaks + moments &            0.0015 &     0.0121 &            0.0018 &                                                 22 \\ \hline
 \bottomrule
 \end{tabular}
-\caption{Constraints on the $(\Omega_m,w,\sigma_8)$ parameter triplet using different summary statistics and redshift information. Each column $(\Delta \Omega_m,\Delta w,\Delta \sigma_8)$ contains the 1 $\sigma$ constraints on a particular parameter, marginalized over the other two. The last volume contains the volume of the $\sigma$ ellipsoid in $(\Omega_m,w,\sigma_8)$ space, calculated as $\sqrt{\det \bbh{\Sigma}}$.}
+\caption{Constraints on the $(\Omega_m,w,\sigma_8)$ parameter triplet using different summary statistics and redshift information. Each column $(\Delta \Omega_m,\Delta w,\Delta \sigma_8)$ contains the 1$\sigma$ constraints on a particular parameter, marginalized over the other two. The last volume contains the volume of the $\sigma$ ellipsoid in $(\Omega_m,w,\sigma_8)$ space, calculated as $\sqrt{\det \bbh{\Sigma}}$.}
 \label{tbl:constraints}
+\end{table*}
+
+\begin{table*}
+\begin{tabular}{c|c|c|c|c|}
+\toprule
+                        \textbf{Statistic} & $\Delta \Omega_m$ & $\Delta w$ & $\Delta \sigma_8$ & $10^4\sqrt[3]{\rm Volume}$ $(\Omega_m,w,\sigma_8)$ \\ \hline \hline
+\midrule
+     Power spectrum ($\bar{z}_5$) &            0.0076 &     0.0274 &            0.0084 &                                                 45 \\
+      Power spectrum (tomography) &            0.0028 &     0.0129 &            0.0035 &                                                 31 \\
+              Peaks ($\bar{z}_5$) &            0.0048 &     0.0237 &            0.0050 &                                                 38 \\
+               Peaks (tomography) &            0.0041 &     0.0204 &            0.0042 &                                                 41 \\
+            Moments ($\bar{z}_5$) &            0.0024 &     0.0172 &            0.0025 &                                                 27 \\
+             Moments (tomography) &            0.0019 &     0.0149 &            0.0020 &                                                 24 \\ \hline \hline
+           Power spectrum + peaks &            0.0021 &     0.0127 &            0.0025 &                                                 26 \\ 
+         Power spectrum + moments &            0.0015 &     0.0120 &            0.0018 &                                                 22 \\
+ Power spectrum + peaks + moments &            0.0015 &     0.0104 &            0.0018 &                                                 21 \\ \hline
+\bottomrule
+\end{tabular}
+\caption{Constraints on the $(\Omega_m,w,\sigma_8)$ parameter triplet using different summary statistics and redshift information, including Fisher priors from Planck according to equation (\ref{meth:parcovestimator_cmb}). Each column $(\Delta \Omega_m,\Delta w,\Delta \sigma_8)$ contains the 1$\sigma$ constraints on a particular parameter, marginalized over the other two. The last volume contains the volume of the $\sigma$ ellipsoid in $(\Omega_m,w,\sigma_8)$ space, calculated as $\sqrt{\det \bbh{\Sigma}}$.}
+\label{tbl:constraints-cmb}
 \end{table*}
 
 \begin{figure}
@@ -344,6 +393,17 @@ In this work we study cosmological parameter constraints forecasts for an LSST-l
 %%%%%%%%%%%%%%%%%%%%%%%%%% ACKNOWLEDGMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section*{Acknowledgments}
+
+We thank Colin Hill for useful discussions. The simulations in this work
+were performed at the NSF XSEDE facility, supported by grant number
+ACI-1053575, and at the New York Center for Computational Sciences, a
+cooperative effort between Brookhaven National Laboratory and Stony
+Brook University, supported in part by the State of New York. This
+work was supported in part by the U.S. Department of Energy under
+Contract Nos. DE-AC02-98CH10886 and DE-SC0012704, and by the NSF Grant
+No. AST-1210877 (to Z.H.) and by the Research Opportunities and
+Approaches to Data Science (ROADS) program at the Institute for Data
+Sciences and Engineering at Columbia University (to Z.H.). 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
