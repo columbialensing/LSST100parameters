@@ -87,6 +87,9 @@ def galdistr(cmd_args,fontsize=22):
 	ax.set_ylabel(r"$N_g(z)$",fontsize=fontsize)
 	ax.legend()
 
+	#Ticks
+	ax.tick_params(axis="both",which="major",labelsize=fontsize)
+
 	#Save figure
 	fig.savefig("galdistr."+cmd_args.type)
 
@@ -244,6 +247,9 @@ def pca_components(cmd_args,db_name="data/fisher/constraints_combine.sqlite",fea
 
 	#Labels
 	axes[0].set_ylabel(r"$\Delta$"+par2label[parameter],fontsize=fontsize)
+
+	#Ticks
+	axes[0].tick_params(axis="both",which="major",labelsize=fontsize)
 
 	#Save figure
 	fig.savefig("{0}_{1}.".format(parameter,feature_label)+cmd_args.type)
@@ -489,30 +495,34 @@ def bias_vs_sigma(cmd_args,db_name="data/fisher/constraints_photoz.sqlite",param
 rows = {
 
 "ps5" : {"name" : "power_spectrum_pca_z4" , "table_name" : "pcov_noise" ,"bins" : 14 , "label" : r"Power spectrum ($\bar{z}_5$)"},
-"ps-tomo" : {"name" : "power_spectrum_pca" , "table_name" : "pcov_noise" , "bins" : 70 , "label" : "Power spectrum (tomography)"},
+"ps-tomo" : {"name" : "power_spectrum_pca" , "table_name" : "pcov_noise" , "bins" : 70 , "label" : "Power spectrum (tomo)"},
 "peaks5" : {"name" : "peaks_pca_z4" , "table_name" : "pcov_noise" , "bins" : 27 , "label" : r"Peaks ($\bar{z}_5$)"},
-"peaks-tomo" : {"name" : "peaks_pca" , "table_name" : "pcov_noise" , "bins" : 70 , "label" : "Peaks (tomography)"},
+"peaks-tomo" : {"name" : "peaks_pca" , "table_name" : "pcov_noise" , "bins" : 70 , "label" : "Peaks (tomo)"},
 "moments5" : {"name" : "moments_pca_z4" , "table_name" : "pcov_noise" , "bins" : 9 , "label" : r"Moments ($\bar{z}_5$)"},
-"moments-tomo" : {"name" : "moments_pca" , "table_name" : "pcov_noise" , "bins" : 40 , "label" : "Moments (tomography)"},
+"moments-tomo" : {"name" : "moments_pca" , "table_name" : "pcov_noise" , "bins" : 40 , "label" : "Moments (tomo)"},
 
-"ps+pk" : {"name" : "power_spectrum+peaks" , "table_name" : "pcov_noise_combine" , "bins" : 70 , "label" : "Power spectrum + peaks"},
-"ps+mu" : {"name" : "power_spectrum+moments" , "table_name" : "pcov_noise_combine" , "bins" : 60 , "label" : "Power spectrum + moments"},
-"ps+pk+mu" : {"name" : "power_spectrum+peaks+moments" , "table_name" : "pcov_noise_combine" , "bins" : 100 , "label" : "Power spectrum + peaks + moments"} 
+"ps+pk5" : {"name" : "power_spectrum+peaks_z4" , "table_name" : "pcov_noise_combine" , "bins" : 14+27 , "label" : r"Power spectrum + peaks ($\bar{z}_5$)"},  
+"ps+pk" : {"name" : "power_spectrum+peaks" , "table_name" : "pcov_noise_combine" , "bins" : 70 , "label" : "Power spectrum + peaks (tomo)"},
+"ps+mu5" : {"name" : "power_spectrum+moments_z4" , "table_name" : "pcov_noise_combine" , "bins" : 14+9 , "label" : r"Power spectrum + moments ($\bar{z}_5$)"},
+"ps+mu" : {"name" : "power_spectrum+moments" , "table_name" : "pcov_noise_combine" , "bins" : 60 , "label" : "Power spectrum + moments (tomo)"},
+"ps+pk+mu5" : {"name" : "power_spectrum+peaks+moments_z4" , "table_name" : "pcov_noise_combine" , "bins" : 14+27+9 , "label" : r"Power spectrum + peaks + moments ($\bar{z}_5$)"},
+"ps+pk+mu" : {"name" : "power_spectrum+peaks+moments" , "table_name" : "pcov_noise_combine" , "bins" : 100 , "label" : "Power spectrum + peaks + moments (tomo)"} 
 
 }
 
 columns = {
 	
-	"labels" : [r"$\Delta \Omega_m$",r"$\Delta w$",r"$\Delta \sigma_8$",r"$10^4\sqrt[3]{\rm Volume}$ $(\Omega_m,w,\sigma_8)$"] ,
+	"labels" : [r"$\Delta \Omega_m$",r"$\Delta w$",r"$\Delta \sigma_8$",r"$10^6{\rm Area} (\Omega_m,w)$",r"$10^9{\rm Volume}$ $(\Omega_m,w,\sigma_8)$"] ,
 	r"$\Delta \Omega_m$" : lambda pcov:np.sqrt(pcov["Om"]),
 	r"$\Delta w$" : lambda pcov:np.sqrt(pcov["w"]),
 	r"$\Delta \sigma_8$" : lambda pcov:np.sqrt(pcov["sigma8"]),
-	r"$10^4\sqrt[3]{\rm Volume}$ $(\Omega_m,w,\sigma_8)$" : lambda pcov: int(1.0e4*np.linalg.det(pcov.values)**(1/6.))
+	r"$10^6{\rm Area} (\Omega_m,w)$" : lambda pcov : int(1.0e6*np.sqrt(np.linalg.det(pcov[["Om","w"]].values))),
+	r"$10^9{\rm Volume}$ $(\Omega_m,w,\sigma_8)$" : lambda pcov: int(1.0e9*np.sqrt(np.linalg.det(pcov.values)))
 
 }
 
 #Table with errors, ellipse contours, etc...
-def constraint_table(cmd_args,db_name="data/fisher/constraints_combine.sqlite",cmb_prior_fisher=None,print_to=sys.stdout,features_to_show=["ps5","ps-tomo","peaks5","peaks-tomo","moments5","moments-tomo","ps+pk","ps+mu","ps+pk+mu"],all_parameters=["Om","w","sigma8"],rows=rows,columns=columns):
+def constraint_table(cmd_args,db_name="data/fisher/constraints_combine.sqlite",cmb_prior_fisher=None,print_to=sys.stdout,features_to_show=["ps5","ps-tomo","peaks5","peaks-tomo","moments5","moments-tomo","ps+pk5","ps+pk","ps+mu5","ps+mu","ps+pk+mu5","ps+pk+mu"],all_parameters=["Om","w","sigma8"],rows=rows,columns=columns):
 
 	#Prepare the Table with the appropriate number of rows and columns
 	table = pd.DataFrame([rows[r]["label"] for r in features_to_show],columns=["Statistic"])
@@ -581,8 +591,8 @@ method["6"] = photoz_bias
 
 method["7"] = bias_vs_sigma
 
-method["table1"] = constraint_table
-method["table2"] = constraint_table_cmb
+method["t1"] = constraint_table
+method["t2"] = constraint_table_cmb
 
 #Main
 def main():

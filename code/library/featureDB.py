@@ -534,7 +534,7 @@ class FisherDatabase(Database):
 			for n in range(5):
 				b,p = self.query_parameter_simple(feature+"_z{0}".format(n),table_name,parameter)
 				axes[nfeat].plot(b,np.sqrt(p),label=r"$z\in[{0:.2f},{1:.2f}]$".format(*self.z_bins[n]))
-			axes[nfeat].set_title(r"${\rm " + feature.replace("_pca","").replace("_","\,\,") + r"}$",fontsize=22)
+			axes[nfeat].set_title(r"${\rm " + feature.replace("_pca","").replace("_","\,\,") + r"}$",fontsize=30)
 
 		#Axes labels
 		for ax in axes:
