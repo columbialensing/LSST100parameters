@@ -159,7 +159,7 @@ z_p(z_s) = z_s + b_{\rm ph}(z_s) + \sigma_{\rm ph}(z_s)\mathcal{N}(0,1),
 where $\mathcal{N}(0,1)$ is the standard normal distribution. We bin the $N_g$ galaxies in our simulated catalogs into 5 redshift bins $\bar{z}_b$, $b=1...5$. Several models have been proposed in the literature for the photometric bias $b_{\rm ph}(z_s)$ (see for example \citep{Huterer2006}) and variance $\sigma_{\rm ph}(z_s)$ (see for example \citep{LSSTSciBook}). We chose the photo-$z$ bias and variance functions in equation (\ref{meth:photoz-correction}) to be the science requirements contained in the LSST Science Book \citep{LSSTSciBook}, namely $b(z_s)=0.003(1+z_s)$ and $\sigma(z_s)=0.02(1+z_s)$. 
 
 \begin{figure}
-\includegraphics[scale=0.3]{Figures/galdistr.pdf}
+\includegraphics[scale=0.3]{Figures/galdistr.eps}
 \caption{Galaxy distribution assumed throughout this work (see equation (\ref{meth:galdistr})), along with the choice of the redshift bins $\bar{z}_b$. Our galaxy sample consists of $N_g=10^6$ galaxies. The figure shows the number of galaxies $N_g(z)$ at each redshift $z$.}
 \label{fig:galdistr}
 \end{figure}
@@ -335,10 +335,10 @@ Figure \ref{fig:nopca} shows a comparison between the $w$ constraints obtained u
 where $P_\ell(z_1,z_2)$ is a shorthand for $P^{\kappa\kappa}(\ell,z_1,z_2)$, $\delta\h{P}_\ell(z_1,z_2)=\h{P}_\ell(z_1,z_2) - P_\ell(z_1,z_2)$ is the scatter in the $\h{P}$ estimator, $\delta\ell_{\rm bin}$ is the width of the linearly spaced multipole bands and $f_{\rm sky} = \theta^2_{\rm FOV}/4\pi$ is the sky coverage fraction of one field of view. In this approximation the cross variance terms between different multipoles are assumed to be zero.   
 
 \begin{figure*}
-\includegraphics[scale=0.3]{Figures/w_power_spectrum_no_pca.pdf}
-\includegraphics[scale=0.3]{Figures/w_peaks_no_pca.pdf}
-\includegraphics[scale=0.3]{Figures/w_moments_no_pca.pdf}
-\caption{Comparison between single-redshift $w$ constraints (marginalized over $\Omega_m$ and $\sigma_8$) obtained without PCA (gray shaded bars) and with PCA (colored bars) as a function of the redshift bin $\bar{z}_b$. We show constraints obtained from the power spectrum (top left), peak counts (top right) and moments (bottom). Note the different scales on the vertical axis in the three different panels. The black dashed lines in the top left panel refer to parameter constraints on $w$ obtained with the public code NICAEA \citep{Nicaea}, assuming a Gaussian covariance model for the power spectrum, as specified by equation (\ref{meth:gausspcov}).}
+\includegraphics[scale=0.3]{Figures/w_power_spectrum_no_pca.eps}
+\includegraphics[scale=0.3]{Figures/w_peaks_no_pca.eps}
+\includegraphics[scale=0.3]{Figures/w_moments_no_pca.eps}
+\caption{Comparison between single-redshift $w$ constraints (marginalized over $\Omega_m$ and $\sigma_8$) obtained without PCA (black bars) and with PCA (colored bars) as a function of the redshift bin $\bar{z}_b$. We show constraints obtained from the power spectrum (top left), peak counts (top right) and moments (bottom). Note the different scales on the vertical axis in the three different panels. The black dashed lines in the top left panel refer to parameter constraints on $w$ obtained with the public code NICAEA \citep{Nicaea}, assuming a Gaussian covariance model for the power spectrum, as specified by equation (\ref{meth:gausspcov}).}
 \label{fig:nopca}
 \end{figure*}
 

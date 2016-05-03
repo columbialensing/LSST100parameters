@@ -152,7 +152,7 @@ def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite"
 		#Plot feature without PCA
 		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
 		var_highest_z = var_feature[-1]
-		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,color=base_color,label=r"${\rm No}$ ${\rm PCA}$",alpha=0.3)
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor=base_color,label=r"${\rm No}$ ${\rm PCA}$",alpha=0.3)
 
 		#Plot features with PCA
 		for n,nc in enumerate(pca_components):
@@ -176,7 +176,7 @@ def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite"
 	ax.legend(prop={"size":25})
 
 	#Title
-	ax.set_title(title,fontsize=fontsize)
+	ax.set_title(title,fontsize=30)
 
 	#Save the figure
 	fig.savefig("{0}_{1}_no_pca.{2}".format(parameter,feature,cmd_args.type))
@@ -209,7 +209,7 @@ def sims_vs_nicaea(cmd_args,db_name="data/fisher/constraints_combine.sqlite",fea
 		#Query parameter variance obtained with the simulations
 		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise_no_pca'.format(parameter))
 		var_feature = var_db[var_db["feature_label"].str.contains(feature)]["{0}-{0}".format(parameter)].values
-		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,color="black",label=r"${\rm No}$ ${\rm PCA}$",alpha=0.3)
+		ax.bar(range(len(var_feature)),np.sqrt(var_feature),width=1,fill=False,edgecolor="black",label=r"${\rm No}$ ${\rm PCA}$",alpha=0.3)
 
 		#Overlay the results obtained with PCA
 		var_db = db.query('SELECT "{0}-{0}",feature_label FROM pcov_noise WHERE bins=10'.format(parameter))
@@ -231,6 +231,7 @@ def sims_vs_nicaea(cmd_args,db_name="data/fisher/constraints_combine.sqlite",fea
 	ax.set_xticks(xticks)
 	ax.set_xticklabels([r"$\bar{z}_" + str(n+1) + r"$" for n in range(len(var_feature)-1)] + [r"${\rm Tomo}$"],fontsize=fontsize)
 	ax.set_ylabel(r"$\Delta$"+par2label[parameter],fontsize=fontsize)
+	ax.set_title(r"${\rm power}$ ${\rm spectrum}$",fontsize=30)
 	ax.legend(prop={"size":25})
 
 	#Save the figure
