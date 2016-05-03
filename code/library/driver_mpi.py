@@ -228,6 +228,13 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 		else:
 			features_dbname = getattr(settings,feature).dbname 
 
+		#Models and means table to build the emulator
+		if "models_table" in specs:
+			getattr(settings,feature).model_table = models_table
+
+		if "means_table" in specs:
+			getattr(settings,feature).emulator_table = means_table
+
 		#Query the database
 		feature_dbfile = os.path.join(batch.storage,features_dbname)
 		print("")
