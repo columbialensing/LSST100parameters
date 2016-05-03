@@ -163,7 +163,7 @@ def constraints_no_pca(cmd_args,db_name="data/fisher/constraints_combine.sqlite"
 		#Plot tomographic constraint with the maximum number of pca components
 		var_db = db.query('SELECT "{0}-{0}",bins,feature_label FROM pcov_noise'.format(parameter))
 		var_feature_tomo,nc,label = var_db.query("feature_label=='{0}'".format(feature+"_pca")).tail(1).values.flat
-		ax.bar(5,np.sqrt(var_feature_tomo),width=1,fill=False,edgecolor=tomo_color,label=r"$(N_c={0})$".format(int(nc)))
+		ax.bar(5,np.sqrt(var_feature_tomo),width=1,fill=False,edgecolor=tomo_color,label=r"$N_c={0}$".format(int(nc)))
 
 		#Put a percent value on the last bar of the graph
 		#ax.text(5.5,np.sqrt(var_highest_z),r"$-{0}\%$".format(int(100*(np.sqrt(var_highest_z/var_feature_tomo)-1))),fontsize=fontsize)
