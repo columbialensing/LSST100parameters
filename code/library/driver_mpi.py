@@ -230,10 +230,13 @@ def cosmo_constraints(batch,specs,settings=default_settings):
 
 		#Models and means table to build the emulator
 		if "models_table" in specs:
-			getattr(settings,feature).model_table = models_table
+			getattr(settings,feature).model_table = specs["models_table"]
 
 		if "means_table" in specs:
-			getattr(settings,feature).emulator_table = means_table
+			getattr(settings,feature).emulator_table = specs["means_table"]
+
+		if "derivative_precision" in specs:
+			settings.derivative_precision = specs["derivative_precision"]
 
 		#Query the database
 		feature_dbfile = os.path.join(batch.storage,features_dbname)
