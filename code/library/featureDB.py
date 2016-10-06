@@ -523,25 +523,25 @@ class FisherDatabase(Database):
 			len(axes)
 		except TypeError:
 			axes = [axes]
+
+		#Plot alltogether
+		for nfeat,feature in enumerate(features):
+			b,p = self.query_parameter_simple(feature,table_name,parameter)
+			axes[nfeat].plot(b,np.sqrt(p),linewidth=3.5,label=r"$z$"+ r" ${\rm tomography}$")
 		
 		#Plot single redshift
 		for nfeat,feature in enumerate(features):
 			for n in range(5):
 				b,p = self.query_parameter_simple(feature+"_z{0}".format(n),table_name,parameter)
 				axes[nfeat].plot(b,np.sqrt(p),label=r"$z\in[{0:.2f},{1:.2f}]$".format(*self.z_bins[n]))
-			axes[nfeat].set_title(r"${\rm " + feature.replace("_pca","").replace("_","\,\,") + r"}$",fontsize=22)
-
-		#Plot alltogether
-		for nfeat,feature in enumerate(features):
-			b,p = self.query_parameter_simple(feature,table_name,parameter)
-			axes[nfeat].plot(b,np.sqrt(p),label=r"$z$"+ r" ${\rm tomography}$")
+			axes[nfeat].set_title(r"${\rm " + feature.replace("_pca","").replace("_","\,\,") + r"}$",fontsize=30)
 
 		#Axes labels
 		for ax in axes:
 			ax.set_xlabel(r"$N_c$",fontsize=22)
 			ax.set_ylabel(r"$\Delta$" + parameter,fontsize=22)
 			ax.set_yscale("log")
-			ax.legend(prop={"size":16})
+			ax.legend(prop={"size":25})
 
 		#Tight layout
 		fig.tight_layout()
